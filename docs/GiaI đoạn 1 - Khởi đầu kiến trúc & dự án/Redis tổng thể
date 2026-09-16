@@ -1,0 +1,10 @@
+Chưa cần dùng ở Phase 1, nhưng nên dựng sẵn.
+Mục đích, dùng cho:
+    Cache market quote.
+    Session phụ trợ.
+    Rate limiting.
+    Websocket state.
+    Background jobs.
+    Distributed lock nếu cần.
+    Temporary data.
+Không nên sử dụng cho Balance, Order hoặc Ledger

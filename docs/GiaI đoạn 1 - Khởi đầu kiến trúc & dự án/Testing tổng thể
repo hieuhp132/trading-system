@@ -1,0 +1,34 @@
+Phase 1 chưa cần viết hàng trăm test, nhưng phải thiết lập framework.
+
+UnitTest, dùng cho 
+    utility,
+    validation,
+    config,
+    auth service,
+    domain calculation sau này.
+IntegrationTest,
+    API + Database
+    Repository
+    Auth flow
+    Transaction
+E2ETest,
+    Login,
+    Protected Route,
+    Basic user flow.
+
+Cấu trúc:
+    tests/
+        unit/
+        integration/
+        e2e/
+
+Definition of Done:
+    Một feature không được coi là hoàn thành, nếu:
+        code chạy được.
+        TypeScript build thành công.
+        Lint pass,
+        Test pass,
+        API docs cập nhật,
+        Không có secret commit.
+        Có review.
+

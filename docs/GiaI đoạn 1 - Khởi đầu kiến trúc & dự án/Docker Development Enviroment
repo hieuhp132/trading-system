@@ -1,0 +1,34 @@
+Services, phase 1 chỉ cần:
+    postgres,
+    redis
+Sơ đồ
+    Local Frontend :5173
+        │
+        ▼
+    Local Backend :3000
+        │
+        ├── PostgreSQL :5432
+        └── Redis :6379
+Docker Compose
+    services:
+        postgres:
+            image: postgres:16
+            enviroment: 
+                POSTGRES_DB: trading_plattform
+                POSTGRES_USER: postgres
+                POSTGRES_PASSWORD: postgres
+            ports:
+                - "5432:5432"
+            volumes:
+                - postgres_data:/var/lib/postgresql/data
+
+        redis:
+            image: redis:7-alpine
+            ports:
+                - "6379:6379"
+
+    volumes:                                                                                                                                                                                
+        postgres_data:
+
+Deliverable 
+    docker compose up -d

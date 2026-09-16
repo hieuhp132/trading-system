@@ -1,0 +1,72 @@
+Feature-based architecture
+
+src/
+    apps/
+        App.tsx
+        AppProviders.tsx
+        app.config.ts
+    routes/
+        routes.tsx
+        public.routes.tsx
+        auth.routes.tsx
+        user.routes.tsx
+        admin.routes.tsx
+    layouts/
+        PublicLayout.tsx
+        AuthLayout.tsx
+        AppLayout.tsx
+        AdminLayout.tsx
+    pages/
+        HomePage/
+        MarketPage/
+        LoginPage/
+        NotfoundPage/
+    features/
+        auth/
+            api/
+            components/
+            hooks/
+            schemas/
+            stores/
+            types/
+        market/
+        trading/
+        account/
+        news/
+        admin/
+    components/
+        ui/
+        layout/
+        feedback/
+        data-display/
+    services/
+        api-client.ts
+        auth-api.ts
+        websocket-client.ts
+    stores/
+        app.store.ts
+    hooks/
+    lib/
+    types/
+    styles/
+
+Foundation quan trọng của frontend:
+    function A(ppProviders({children}:PropsWithChildren) {
+        return (
+            <QueryClientProvider client={queryClient}>
+                <AuthProvider>
+                    <RouterProvider router={router} />
+                </AuthProvider>
+            </QueryClientProvider>
+        )
+    }
+Api Client Foundation:
+    import axios from "axios";
+
+    export const apiClient=axios.create({
+        baseUrl: import.meta.env.VITE_API_BASE_URL,
+        timeout: 15000,
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });

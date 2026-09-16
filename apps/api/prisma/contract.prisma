@@ -1,0 +1,142 @@
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  CLOSED
+}
+
+enum OrderSide {
+  BUY
+  SELL
+}
+
+enum OrderType {
+  MARKET
+}
+
+enum OrderStatus {
+  PENDING
+  FILLED
+  REJECTED
+  CANCELLED
+}
+
+enum PositionSide {
+  LONG
+  SHORT
+}
+
+enum PositionStatus {
+  OPEN
+  CLOSED
+}
+
+model User {
+  id           String                     @id @default(uuid())
+  email        String                     @unique
+  passwordHash String
+  fullName     String?
+  role         UserRole                   @default(USER)
+  createdAt    TimestamptzString          @default(now())
+  updatedAt    temporal.updatedAtString()
+
+  demoAccounts DemoAccount[]
+}
+
+model DemoAccount {
+  id             String                     @id @default(uuid())
+  userId         String
+  accountNumber  String                     @unique
+  currency       String                     @default("USD")
+  initialBalance Decimal
+  balance        Decimal
+  equity         Decimal
+  status         AccountStatus              @default(ACTIVE)
+  createdAt      TimestamptzString          @default(now())
+  updatedAt      temporal.updatedAtString()
+
+  user           User                       @relation(fields:[userId], references:[id], onDelete: Cascade)
+  orders         Order[]
+  positions      Position[]
+  trades         Trade[]
+
+  @@index([userId])
+}
+
+model MarketPrice {
+  id        String            @id @default(uuid())
+  symbol    String
+  bid       Decimal
+  ask       Decimal
+  last      Decimal
+  source    String?
+  timestamp TimestamptzString @default(now())
+
+  @@index([symbol, timestamp])
+}
+
+model Order {
+  id             String             @id @default(uuid())
+  accountId      String
+  symbol         String
+  side           OrderSide
+  orderType      OrderType          @default(MARKET)
+  quantity       Decimal
+  requestedPrice Decimal?
+  executedPrice  Decimal?
+  status         OrderStatus        @default(PENDING)
+  commission     Decimal
+  createdAt      TimestamptzString  @default(now())
+  executedAt     TimestamptzString?
+
+  account        DemoAccount        @relation(fields:[accountId], references:[id], onDelete: Cascade)
+  trades         Trade[]
+
+  @@index([accountId, createdAt])
+}
+
+model Position {
+  id                String             @id @default(uuid())
+  accountId         String
+  symbol            String
+  side              PositionSide
+  quantity          Decimal
+  averageEntryPrice Decimal
+  currentPrice      Decimal?
+  unrealizedPnl     Decimal
+  status            PositionStatus     @default(OPEN)
+  openedAt          TimestamptzString  @default(now())
+  closedAt          TimestamptzString?
+
+  account           DemoAccount        @relation(fields:[accountId], references:[id], onDelete: Cascade)
+  trades            Trade[]
+
+  @@index([accountId, status])
+  @@index([symbol, status])
+}
+
+model Trade {
+  id          String             @id @default(uuid())
+  accountId   String
+  orderId     String
+  positionId  String?
+  symbol      String
+  side        OrderSide
+  quantity    Decimal
+  entryPrice  Decimal?
+  exitPrice   Decimal?
+  realizedPnl Decimal?
+  commission  Decimal
+  openedAt    TimestamptzString  @default(now())
+  closedAt    TimestamptzString?
+
+  account     DemoAccount        @relation(fields:[accountId], references:[id], onDelete: Cascade)
+  order       Order              @relation(fields:[orderId], references:[id], onDelete: Cascade)
+  position    Position?          @relation(fields:[positionId], references:[id], onDelete: SetNull)
+
+  @@index([accountId, openedAt])
+}

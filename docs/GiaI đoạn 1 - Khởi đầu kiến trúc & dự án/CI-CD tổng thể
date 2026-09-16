@@ -1,0 +1,34 @@
+Pipeline tối thiểu:
+
+    Push / Pull Request
+            ↓
+    Install dependencies
+            ↓
+    Type Check
+            ↓
+    Lint
+            ↓
+    Unit Test
+            ↓
+    Build Frontend
+            ↓
+    Build Backend
+            ↓
+    Docker Build (nếu cần)
+            ↓
+    Pass
+
+Branch strategy:
+    main        → Production
+    develop     → Integration
+    feature/*   → Development
+    release/*   → Release preparation
+    hotfix/*    → Production fix
+
+Comment convention:
+    feat: add auth module
+    fix: handle refresh token failure
+    refactor: separate market provider adapter
+    docs: update deployment guide
+    test: add login integration tests
+    chore: update dependencies

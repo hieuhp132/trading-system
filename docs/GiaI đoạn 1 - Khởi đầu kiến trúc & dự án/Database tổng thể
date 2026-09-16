@@ -1,0 +1,21 @@
+Đây là phần cần làm cẩn thận vì sau này có Trading, Ledger, Payment.
+
+Database chính.
+    PostgreSQL
+        Transaction mạnh, foreign key, index, jsonb, migration, phù hợp với dữ liệu nghiệp vụ, có thể mở rộng.
+    Thiết kế theo domain:
+        users, user_profiles, trading_accounts, orders, positions, ledger_entries, market_symbols, market_quotes,
+        candles, new_articles, kyc_case, payment_transaction, audit_logs.
+        Nên tạo ở phase 1:
+            users, user_profles, refresh_tokens, roles, permissions.
+        Ví dụ với placeholder:
+            model User {
+                id  string @id @default(uuid()) 
+                email string @unique
+                passwordHash string
+                status UserStatus @default(ACTIVE)
+                createdAt   DateTime @default(now())
+                updatedAt   DateTime @updatedAt
+
+                profile     UserProfile?
+            }

@@ -1,0 +1,14 @@
+Mặc dù nằm ở Phase 3 trong kế hoặc lớn, nhưng Phase 1 nên chuẩn bị nền tảng auth, ít nhất là :
+    User model,
+    Auth module skeleton,
+    JWT config,
+    Password hashing service,
+    Token strategy,
+    Guard,
+    Current user decorator,
+    Auth API contract,
+    Protected route foundation.
+    
+    KHÔNG NHẤT THIẾT PHẢI HOÀN HIỆN TOÀN BỘ  UI ĐĂNG KÝ/ ĐĂNG NHẬP trong phase 1.
+    Nhưng backend phải có kiến trúc để Phase 3 triển khai nhanh.
+    

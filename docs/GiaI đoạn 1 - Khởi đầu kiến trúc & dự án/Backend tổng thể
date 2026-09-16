@@ -1,0 +1,31 @@
+Backend Foundation:
+    Bootstrap:
+        NestJs application
+        Global prefix
+        Config module
+        Validation pipe
+        Exception filter
+        Logger
+        Swagger
+        CORS
+        Helmet
+        Health check
+        Graceful shutdown
+    Ví dụ cấu trúc:
+        api/src/
+            main.ts
+            app.module.ts
+            config/
+                app.config.ts
+                database.config.ts
+                security.config.ts
+            common/
+                decorators/
+                filters/
+                guards/
+                interceptors/
+                pipes/
+                exceptions/
+                types/
+            modules
+    Global API prefix, global validation

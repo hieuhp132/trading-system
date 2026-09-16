@@ -1,0 +1,351 @@
+I. Vision
+
+Xây dựng một nền tảng web/PWA cho phép người dùng theo dõi thị trường tài chính, đặc biệt là XAU/USD, xem biểu đồ
+giá theo thời gian thực, quản lý tài khoản và thực hiện giao dịch demo hoặc giao dịch thật tùy theo mô hình kinh
+doanh được phê duyệt.
+
+II. Mục tiêu
+
+Đối tượng khách hàng: Nhà đầu tư cá nhân, trader chuyên nghiệp, khách hàng doanh nghiệp.
+Thị trường hoạt động: Việt nam, EU, quốc tê.
+Sản phẩm chính: Theo dõi giá vàng, demo trading, real trading.
+Mục tiêu MVP: Ra mắt bản theo dõi thị trường và demo trading.
+Mô hình doanh thu: Phí giao dịch, spread, subsciprtion, môi giới.
+Kênh sử dụng: Desktop, mobile browser, PWA.
+Ngôn ngữ: Tiếng Anh, Tiếng Việt.
+Tiền tệ: USD, Vnd.
+
+III. Chốt phạm vi
+
+Landing page và giao diện PWA.
+Thị trường.
+Biểu đồ.
+Giao dịch.
+Tài khoản người dùng.
+KYC.
+Nạp/rút tiền.
+Tin tức.
+Admin
+Phân quyền.
+Audit log.
+Bảo mật.
+Triển khai và bàn giao.
+
+Phân loại chức năng theo giai đoạn.
+    Nhóm A: MVP__
+        Đăng ký/ Đăng nhập
+        Trang tổng quan thị trường
+        Danh sách sản phẩm hoặc cặp giao dịch
+        XAU/USD
+        Biểu đồ giá
+        Dữ liệu giá từ market data provider
+        Tài khoản người dùng cơ bản
+        Demo account nếu chọn paper trading
+        Giao dịch demo cơ bản
+        Admin cơ bản
+        Logging và audit nền tảng.
+    Nhóm B: Cần có, nhưng có thể triển khai sau MVP__
+        Watchlist nâng cao.
+        Price alert.
+        Tin tức.
+        Thông báo.
+        Lịch sử giao dịch nâng cao.
+        Dashboard thống kê.
+        Quản lý nhiều tài khoản.
+        Xuất báo cáo.
+    Nhóm C: Phụ thuộc quyết định kinh doanh/ pháp lý__
+        Giao dịch thật.
+        Đòn bẩy/ margin.
+        KYC.
+        Nạp tiền.
+        Rút tiền.
+        Tích hợp broker.
+        Tích hợp payment gateway.
+        Xác minh danh tính.
+        Quản lý tài sản thật.
+    Nhóm D: Không phụ thuộc phase 1.
+        AI trading
+        Copy trading
+        Social trading
+        Microservices phức tạp
+        Hệ thống matching engine riêng
+        Hệ thống quản lý rủi ro cấp tổ chức
+IV. User Roles & User Flows
+
+Các nhóm người dùng dự kiến:
+    Guest:
+        Xem landing page.
+        Xem một phần thông tin thị trường.
+        Xem giới thiệu sản phẩm.
+        Đăng ký/ đăng nhập.
+    Registered User:
+        Xem thị trường.
+        Xem biểu đồ.
+        Quản lý Watchlist.
+        Quản lý tài khoản.
+        Sử dụng demo trading nếu được bật.
+    Verified User:
+        Có thể sử dụng các chức năng yêu cầu KYC.
+        Có thể được cấp quyền giao dịch thật nếu mô hình cho phép.
+    Admin:
+        Quản lý người dùng.
+        Quản lý sản phẩm/cặp giao dịch.
+        Xem giao dịch.
+        Xem audit log.
+        Quản lý cấu hình hệ thống.
+    Super Admin:
+        Quản lý Admin.
+        Quản lý role và permission.
+        Quản lý cấu hình nhạy cảm.
+        Quản lý tích hợp provider.
+        Quản lý quyền truy cập cấp cao.
+V. Quyết định mô hình giao dịch.
+    Phương án A - Paper Trading.
+        Hệ thống mô phỏng giao dịch bằng số dư ảo.
+        Cần xây dựng:
+            Demo Account.
+            Virtual Balance.
+            Order.
+            Position.
+            Unrealized P&L.
+            Realized P&L.
+            Trade history.
+            Simulated execution.
+            Market price feed.
+    Phương án B - Real Trading qua Broker.
+        Frontend chỉ là giao diện, backend kết nốt broker.
+            Broker nào?
+            Broker có API nào?
+            REST hay WEBSOCKET?
+            Có hỗ trợ XAU/USD không?
+            Có hỗ trợ order type nào?
+            Có hỗ trợ margin/leverage không?
+            Có sandbox không?
+            Có webhook/execution callback không?
+            Có giới hạn rate limit không?
+            Ai chịu trách nghiệm giữ tiền?
+            Hệ thống có cần license hoặc giấy phép không?
+    Khuyến nghị giai đoạn demo.
+        MVP sử dụng paper/demo trading, real trading được thiết kế theo dạng adapter nhưng chưa kích hoạt cho production.
+
+VI. Đánh giá khả thi kỹ thuật:
+    1.Market data:
+        Provider nào cung cấp XAU/USD?
+        Dữ liệu có realtime ko?
+        Có Bid/Ask ko hay chỉ Last Price?
+        Có Websocker ko?
+        Có historical candles không?
+        Có giới hạn request ko?
+        Có được phép hiển thị dữ liệu cho người dùng cuối ko??
+        Giá có bị delay ko?
+        Có sandbox hoặc trial ko?
+    2.Chart
+        Dùng TradingView Charing Library hay Lightweight Charts?
+        Provider có cung cấp dữ liệu phù hợp với chart ko?
+        Có cần tự aggregate candle ko?
+        Có cần lưu historical data ko?
+    3.Backend
+        REST API hay GraphQL?
+        Có cần Websocker/SSE ko?
+        Có cần queue ko?
+        Có cần cache ko?
+        Có cần xử lý nhiều kết nối realtime ko?
+    4.Database
+        Lưu order, position, ledger như thế nào?
+        Có cần immutable transaction records ko?
+        Có cần audit mọi thay đổi tài chính ko?
+        Có cần timezone chuẩn UTC ko?
+    5.Deployment
+        VPS, Cloud hay Managed Plattform?
+        Có Dev/Staging/Production ko?
+        Có Backup tự động ko?
+        Có monitoring ko?
+        Có log aggregation ko?
+VII. Proof Of Concept.
+    Các POC có rủi ro cao:
+        POC1 - Market Data.
+            Mục tiêu:
+                Kết nối Provider.
+                Lấy giá XAU/USD.
+                Kiểm tra độ trễ.
+                Kiểm tra tính ổn định.
+                Kiểm tra giới hạn API.
+                Kiểm tra quyền sử dụng dữ liệu.
+        POC2 - Realtime Transport.
+            So sánh
+                Provider Websocket -> Backend Websocket gateway -> Frontend Chart.
+            hoặc
+                Provider REST Polling -> Backend scheduler -> Cache -> Frontend Polling/Websocket.
+        POC3 - Chart
+            Kiểm tra:
+                Hiển thị candlestick
+                Thay đổi timeframe.
+                Zoom/pan.
+                Cập nhật realtime.
+                Xử lý mất kết nối.
+                Đồng bộ giá và thời gian.
+        POC4 - Paper Order.
+            Kiểm tra:
+                Tạo lệnh Buy/Sell.
+                Kiểm tra volume.
+                Tính giá khớp mô phỏng.
+                Tính P&L.
+                Cập nhật position.
+                Xử lý race condition khi có nhiều lệnh.
+VIII. Market Data Provider Research.
+    Vì XAU/USD là chức năng cốt lõi, cần nghiên cứu provider riêng thay vì chọn theo cảm tính.
+    Tài liệu yêu cầu marketdata phải được cung cấp từ API/data provider riêng vầ nên có khả năng thay thế provider
+    để tránh vendor lock-in.
+    Tiêu chí đánh giá:
+        Symbol: XAU/USD có được hỗ trợ ko?
+        Realtime: Tick, quote hoặc candle realtime.
+        Latency: Độ trễ trung bình và độ trễ cao nhất.
+        Bid/Ask: Có Bid/Ask hay ko?
+        Historical Data: Có dữ liệu lịch sử hay ko?
+        Websocket: Có kết nối streaming ko?
+        Reliability: SLA, uptime, reconnect.
+        Rate limit: Số request/phút.
+        Licensing: Quyền hiển thị dữ liệu.
+        Redistribution: Có được phân phối cho enduser ko?
+        Cost: Giá theo request, user hoặc subscription.
+        Sandbox: Có môi trường test ko?
+        Region: Có giới hạn khu vực ko?
+        Support: Tài liệu và hỗ trợ kỹ thuật.
+    Tạo Provider Abstraction
+        Ngay từ giai đoạn 0 cần thống nhất rằng backend ko phụ thuộc trực tiếp vào một provider cụ thể.
+        Ví dụ interface:
+            export interface MarketDataProvider {
+                getQuote(symbol: string): Promise<MarketQuote>;
+                getCandles(
+                    symbol: string,
+                    timeframe: MarketTimeframe,
+                    from:Date,
+                    to:Date
+                ): Promise<MarketCandle[]>
+            }
+Security, Legal & Compliance Review
+    Password hashing
+    Phân quyền phía server
+    2FA cho Admin nếu có thể
+    HTTPS
+    Rate limiting
+    Token/session security.
+    Backup
+    Logging & monitoring
+    Secret ko đc đưa vào frontend.
+
+    Checklist:
+        Authentication:
+            Có đăng ký/đăng nhập ko?
+            Dùng JWT hay session
+            Refresh token lưu ở đâu?
+            Có revoke token ko?
+            Có giới hạn đăng nhập sai?
+            Có reset password?
+            Có email verification không?
+        Authorization:
+            Role nào được truy cập module nào?>
+            permission đc kiểm tra ở backend như thế nào?
+            Admin có thể xem dữ liệu tài chính của ai?
+            Có phân biệt Super Admin và Admin ko?
+        Sensitive Data:
+            API key lưu ở đâu?
+            Database credential lưu ở đâu?
+            Refresh token có đc hash ko?
+            Log có vô tình ghi password/token ko?
+            Frontend có expose secret ko?
+        Financial Data:
+            Order có đc sửa sau khi tạo ko?
+            Ledger có immutable ko?
+            Có audit log ko?
+            Có idempotency key ko?
+            Có chống tạo lệnh trùng ko?
+            Có kiểm tra số dư ở backend ko?
+        Legal Question:
+            Cần chuyển cho khách hàng hoặc bộ phận pháp lý xác nhận:
+                Sản phẩm tại quốc gia nào?
+                Có giao dịch thật ko?
+                Có giữ tiền người dùng ko?
+                Có cung cấp margin/leverage ko?
+                Có cần KYC/AML ko?
+                Có cần giấy phép tài chính ko?
+                Dữ liệu giá có đc phép phân phối ko?
+                Có yêu cầu lưu trữ dữ liệu người dùng tại khu vực cụ thể ko?
+                Có chính sách bảo mật và điều khoản sử dụng chưa?
+Performance:
+    Trang dashboard tải lần đầu dưới bao nhiêu giây?
+    API thông thường phản hồi dưới bao nhiều ms?
+    Giá realtime đc cập nhật với độ trễ tối đa là bao nhiêu?
+    Hệ thống chịu đc bao nhiêu người dùng đồng thời?
+    Chart hiển thị tối đa bao nhiêu candles?
+Availability:
+    Cần xác định:
+        Có yêu cầu uptime ko?
+        Có cần tự động restart ko?
+        Có cần health check ko?
+        Có cần backup database hàng ngày ko?
+        Có cần disaster recovery ko?
+Maintainability
+    Có code convention ko?
+    Có test ko?
+    Có API docs ko?
+    Có migration ko?
+    Có changelog ko?
+    Có tài liệu deploy ko?
+    Có thể thay provider ko?
+Observability
+    Structured Logging
+    Request id
+    Error tracking
+    Health check
+    Metrics
+    Alerting
+    Audit log
+Ràng buộc dự án & giả định
+    MVP triển khai dưới dạng PWA/Web App.
+    MVP chưa thực hiện giao dịch tiền thật.
+    Market data đc lấy từ bên thứ ba.
+    Khách hàng cung cấp quyền truy cập provider hoặc ngân sách provider.
+    Khách hàng xác nhận phạm vi pháp lý.
+    UI/UX sẽ được phê duyệt trước khi phát triển.
+    Nội dung pháp lý do khách hàng cung cấp hoặc phê duyệt.
+    Hệ thống ko lưu secret ở frontend.
+
+    Có deadline cố định ko?
+    Có ngân sách provider ko?
+    Có sẵn server ko?
+    Có sẵn domain ko?
+    Có sẵn thiết kế Figma ko?
+    Có sẵn brand guideline ko?
+    Có sẵn Api broker ko?
+    Có sẵn nội dung pháp lý ko?
+    Có cần triển khai song ngữ ko?
+    Có yêu cầu soucecode ownership ko?
+
+Ước lượng sơ bộ và kế hoạch dự án.
+    Chia module để estimate
+        Product & UI foundation
+        Authentication
+        User profile
+        Market data integration
+        Market overview
+        Chart
+        Paper trading
+        Portfolio/postions
+        Admin
+        Audit log
+        Notification
+        Deployment
+        Testing
+        Documentation
+
+    Module-Độ phức tạp-Rủi ro
+        Langding page-Thấp-Thấp
+        Authentication-Trung bình-Trung bình
+        Market overview-Trung bình-Provider
+        Realtime chart-Cao-Provider/Latency
+        Paper trading-Rất cao-Broker/pháp lý
+        KYC-Cao-Compliance/provider
+        Payment-Rất cao-Tài chính/pháp lý
+        Admin RBAC-Trung bình-Permission
+        Audit log-Trung bình-Tính toàn vẹn dữ liệu

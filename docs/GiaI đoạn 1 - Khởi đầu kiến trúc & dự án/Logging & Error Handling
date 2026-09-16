@@ -1,0 +1,11 @@
+Cấu trúc logging, ví dụ:
+    {
+        "level":"error",
+        "timestamp":"2026-09-13T10:00:00Z",
+        "service":"api",
+        "module":"auth",
+        "requestId":"req_123",
+        "message": "Login failed"
+    }, mỗi request nên có requestId để trace
+    development có thể trả chi tiết hơn, production chỉ trả error code/message phù hợp.
+    

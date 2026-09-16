@@ -1,0 +1,106 @@
+MODULAR MONOLITH BACKEND + SEPARATE FRONTEND + POSTGRESQL + REDIS + EXTERNAL PROVIDER ADAPTERS
+
+Stack công nghệ.
+    Frontend-React+Typescript+Vite
+    Routing-React Router
+    Server state-Tanstack Query
+    Client state-Zustand
+    Styling-CSS Modules hoặc Css architecture riêng
+    Chart-Lightweight charts
+    Backend-Nestjs+Websocket
+    ORM-Prisma
+    Database-POSTGRESQL
+    Cache-REDIS
+    Queue-BullMQ
+    Validation-Zod hoặc class-validator
+    AUTH-JWT-Refresh token
+    API Docs-Swagger
+    Testing-Vitest+supertest+playwright
+    Container-Docker Compose
+    CI-Github actions
+    Reverse Proxy-Nginx hoặc cloud proxy
+    Monitoring-Structured logs + Error tracking.
+
+Cấu trúc Repository
+    gold-trading-plattform/
+        apps/
+            web/
+                public/
+                src/
+                    app/
+                    routes/
+                    layouts/
+                    pages/
+                    features/
+                    components/
+                    hooks/
+                    services/
+                    stores/
+                    libs/
+                    styles/
+                    types/
+                vite.config.ts
+                tsconfig.ts
+                package.json
+            api/
+                src/
+                    main.ts
+                    app.module.ts
+                    config/
+                    common/
+                    database/
+                    modules/
+                        auth/
+                        users/
+                        market/
+                        trading/
+                            trading.module.ts
+                            trading.controller.ts
+                            trading.service.ts
+                            trading.repository.ts
+                            dto/
+                            entities/
+                            interfaces/
+                            constants/
+                            tests/
+                        accounts/
+                        ledger/
+                        news/
+                        kyc/
+                        payments/
+                        admin/
+                        audit/
+                    integrations/
+                        market-data/
+                        payment/
+                        kyc/
+                    prisma/
+                        schema.prisma
+                        migrations/
+                        seed.ts
+                    package.json
+        packages/
+            shared-types/
+            shared-validation/
+            config/
+        infrastructure/
+            docker/
+                docker-componse.dev.yml
+                docker-compose.staging.yml
+            nginx/
+            scripts/
+        docs/
+            architecture/
+            api/
+            database/
+            deployment/
+            decisions/
+        .github/
+            workflows/
+        
+        .env.example
+        .gitignore
+        package.json
+        pnpm-workspace.yaml
+        turbo.json
+        README.md

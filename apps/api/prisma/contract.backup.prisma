@@ -1,0 +1,143 @@
+// use prisma-8
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  CLOSED
+}
+
+enum OrderSide {
+  BUY
+  SELL
+}
+
+enum OrderType {
+  MARKET
+}
+
+enum OrderStatus {
+  PENDING
+  FILLED
+  REJECTED
+  CANCELLED
+}
+
+enum PositionSide {
+  LONG
+  SHORT
+}
+
+enum PositionStatus {
+  OPEN
+  CLOSED
+}
+
+model User {
+  id           String                     @id @default(uuid())
+  email        String                     @unique
+  passwordHash String
+  fullName     String?
+  role         UserRole                   @default(USER)
+  createdAt    TimestamptzString          @default(now())
+  updatedAt    temporal.updatedAtString()
+
+  demoAccounts DemoAccount[]
+}
+
+model DemoAccount {
+  id             String                     @id @default(uuid())
+  userId         String
+  accountNumber  String                     @unique
+  currency       String                     @default("USD")
+  initialBalance Decimal(18, 2)
+  balance        Decimal(18, 2)
+  equity         Decimal(18, 2)
+  status         AccountStatus              @default(ACTIVE)
+  createdAt      TimestamptzString          @default(now())
+  updatedAt      temporal.updatedAtString()
+
+  user           User                       @relation(fields:[userId], references:[id], onDelete: Cascade)
+  orders         Order[]
+  positions      Position[]
+  trades         Trade[]
+
+  @@index([userId])
+}
+
+model MarketPrice {
+  id        String            @id @default(uuid())
+  symbol    String
+  bid       Decimal(18, 5)
+  ask       Decimal(18, 5)
+  last      Decimal(18, 5)
+  source    String?
+  timestamp TimestamptzString @default(now())
+
+  @@index([symbol, timestamp])
+}
+
+model Order {
+  id             String             @id @default(uuid())
+  accountId      String
+  symbol         String
+  side           OrderSide
+  orderType      OrderType          @default(MARKET)
+  quantity       Decimal(18, 5)
+  requestedPrice Decimal(18, 5)?
+  executedPrice  Decimal(18, 5)?
+  status         OrderStatus        @default(PENDING)
+  commission     Decimal(18, 5)     @default(0)
+  createdAt      TimestamptzString  @default(now())
+  executedAt     TimestamptzString?
+
+  account        DemoAccount        @relation(fields:[accountId], references:[id], onDelete: Cascade)
+  trades         Trade[]
+
+  @@index([accountId, createdAt])
+}
+
+model Position {
+  id                String             @id @default(uuid())
+  accountId         String
+  symbol            String
+  side              PositionSide
+  quantity          Decimal(18, 5)
+  averageEntryPrice Decimal(18, 5)
+  currentPrice      Decimal(18, 5)?
+  unrealizedPnl     Decimal(18, 5)     @default(0)
+  status            PositionStatus     @default(OPEN)
+  openedAt          TimestamptzString  @default(now())
+  closedAt          TimestamptzString?
+
+  account           DemoAccount        @relation(fields:[accountId], references:[id], onDelete: Cascade)
+  trades            Trade[]
+
+  @@index([accountId, status])
+  @@index([symbol, status])
+}
+
+model Trade {
+  id          String             @id @default(uuid())
+  accountId   String
+  orderId     String
+  positionId  String?
+  symbol      String
+  side        OrderSide
+  quantity    Decimal(18, 5)
+  entryPrice  Decimal(18, 5)?
+  exitPrice   Decimal(18, 5)?
+  realizedPnl Decimal(18, 5)?
+  commission  Decimal(18, 5)     @default(0)
+  openedAt    TimestamptzString  @default(now())
+  closedAt    TimestamptzString?
+
+  account     DemoAccount        @relation(fields:[accountId], references:[id], onDelete: Cascade)
+  order       Order              @relation(fields:[orderId], references:[id], onDelete: Cascade)
+  position    Position?          @relation(fields:[positionId], references:[id], onDelete: SetNull)
+
+  @@index([accountId, openedAt])
+}

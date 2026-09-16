@@ -1,0 +1,32 @@
+Chuẩn hóa:
+    /api/v1/auth/*
+    /api/v1/users/*
+    /api/v1/markets/*
+    /api/v1/trading/*
+    /api/v1/accounts/*
+    /api/v1/admin/* 
+
+HTTP status
+
+    200-Thành công
+    201-Tạo thành công
+    204-Thành công không có body
+    400-Request không hợp lệ
+    401-Chưa xác thực
+    403-Không có quyền
+    404-Không tìm thấy
+    409-Conflict
+    422-Validation nghiệp vụ
+    429-Rate limit
+    500-Lỗi server
+
+Swagger, backend phải có: /api/docs
+
+Deliverables:
+    OpenAPI
+    DTO
+    Response Schema
+    Error codes
+    Auth Schema
+    Example request/response
+    

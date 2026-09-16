@@ -1,0 +1,151 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  CLOSED
+}
+
+enum OrderSide {
+  BUY
+  SELL
+}
+
+enum OrderType {
+  MARKET
+}
+
+enum OrderStatus {
+  PENDING
+  FILLED
+  REJECTED
+  CANCELLED
+}
+
+enum PositionSide {
+  LONG
+  SHORT
+}
+
+enum PositionStatus {
+  OPEN
+  CLOSED
+}
+
+model User {
+  id           String       @id @default(uuid())
+  email        String       @unique
+  passwordHash String
+  fullName     String?
+  role         UserRole     @default(USER)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  demoAccounts DemoAccount[]
+}
+
+model DemoAccount {
+  id             String        @id @default(uuid())
+  userId         String
+  accountNumber  String        @unique
+  currency       String        @default("USD")
+  initialBalance Decimal       @db.Decimal(18, 2)
+  balance        Decimal       @db.Decimal(18, 2)
+  equity         Decimal       @db.Decimal(18, 2)
+  status         AccountStatus @default(ACTIVE)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders    Order[]
+  positions Position[]
+  trades    Trade[]
+
+  @@index([userId])
+}
+
+model MarketPrice {
+  id        String   @id @default(uuid())
+  symbol    String
+  bid       Decimal  @db.Decimal(18, 5)
+  ask       Decimal  @db.Decimal(18, 5)
+  last      Decimal  @db.Decimal(18, 5)
+  source    String?
+  timestamp DateTime @default(now())
+
+  @@index([symbol, timestamp])
+}
+
+model Order {
+  id              String        @id @default(uuid())
+  accountId       String
+  symbol          String
+  side            OrderSide
+  orderType       OrderType     @default(MARKET)
+  quantity        Decimal       @db.Decimal(18, 5)
+  requestedPrice  Decimal?      @db.Decimal(18, 5)
+  executedPrice   Decimal?      @db.Decimal(18, 5)
+  status          OrderStatus   @default(PENDING)
+  commission      Decimal       @default(0) @db.Decimal(18, 5)
+  createdAt       DateTime      @default(now())
+  executedAt      DateTime?
+
+  account DemoAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  trades  Trade[]
+
+  @@index([accountId, createdAt])
+}
+
+model Position {
+  id                 String         @id @default(uuid())
+  accountId          String
+  symbol             String
+  side               PositionSide
+  quantity           Decimal        @db.Decimal(18, 5)
+  averageEntryPrice  Decimal        @db.Decimal(18, 5)
+  currentPrice       Decimal?       @db.Decimal(18, 5)
+  unrealizedPnl      Decimal        @default(0) @db.Decimal(18, 5)
+  status             PositionStatus @default(OPEN)
+  openedAt           DateTime       @default(now())
+  closedAt           DateTime?
+
+  account DemoAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  trades  Trade[]
+
+  @@index([accountId, status])
+  @@index([symbol, status])
+}
+
+model Trade {
+  id          String   @id @default(uuid())
+  accountId   String
+  orderId     String
+  positionId  String?
+  symbol      String
+  side        OrderSide
+  quantity    Decimal  @db.Decimal(18, 5)
+  entryPrice  Decimal? @db.Decimal(18, 5)
+  exitPrice   Decimal? @db.Decimal(18, 5)
+  realizedPnl Decimal? @db.Decimal(18, 5)
+  commission  Decimal  @default(0) @db.Decimal(18, 5)
+  openedAt    DateTime @default(now())
+  closedAt    DateTime?
+
+  account  DemoAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  order    Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  position Position?   @relation(fields: [positionId], references: [id], onDelete: SetNull)
+
+  @@index([accountId, openedAt])
+}

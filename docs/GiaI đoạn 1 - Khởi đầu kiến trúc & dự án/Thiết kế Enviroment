@@ -1,0 +1,41 @@
+ĐÂY LÀ PHẦN NHIỀU PROJECT LÀM SAI
+Các môi trường:
+    Development
+        Local database
+        Local Redis
+        Mock provider
+        Debug logging
+    Staging
+        Database riêng
+        Redis riêng
+        API key staging
+        Test Payment/KYC sandbox
+        QA/UAT
+    Production
+        Database Production
+        Redis Production
+        Secret Manager
+        Backup
+        Monitoring
+        Alerting
+Enviroment variables:
+    .env
+    .env.example
+    .env.Development
+    .env.staging
+    .env.production
+
+    Ví dụ:
+        NODE_ENV=development
+        PORT=3000
+
+        DATABASE_URL=postgresql://...
+        REDIS_URL=redis://...
+
+        JWT_ACCESS_SECRET=
+        JWT_REFRESH_SECRET=
+        
+        CORS_ORIGINS=http://localhost:5173
+
+        MARKET_DATA_API_KEY=
+        PAYMENT_API_KEY=
