@@ -1090,7 +1090,11 @@ export async function getMyPortfolioSummary(
   };
 }
 
-export async function closePosition(userId: string, positionId: string) {
+export async function closePosition(
+  userId: string,
+  positionId: string,
+  requestedQuantity?: string,
+) {
   const marketPrice = await getMarketPrice(XAUUSD_SPEC.symbol);
 
   const result = await db.transaction(async (tx) => {
@@ -1147,6 +1151,38 @@ export async function closePosition(userId: string, positionId: string) {
     const quantity = toNumber(position.quantity);
     const entryPrice = toNumber(position.averageEntryPrice);
 
+    const closeQuantity =
+      requestedQuantity === undefined ? quantity : Number(requestedQuantity);
+
+    if (!Number.isFinite(quantity) || quantity <= 0) {
+      throw new AppError(
+        "Position quantity không hợp lệ",
+        500,
+        "INVALID_POSITION_QUANTITY",
+      );
+    }
+
+    validateOrderVolume(closeQuantity);
+
+    const volumeStep = XAUUSD_SPEC.volumeStep;
+
+    const currentSteps = Math.round(quantity / volumeStep);
+    const closeSteps = Math.round(closeQuantity / volumeStep);
+
+    if (closeSteps > currentSteps) {
+      throw new AppError(
+        "Khối lượng đóng vượt quá khối lượng Position",
+        400,
+        "CLOSE_QUANTITY_EXCEEDED",
+      );
+    }
+
+    const remainingSteps = currentSteps - closeSteps;
+
+    const remainingQuantity = Number((remainingSteps * volumeStep).toFixed(8));
+
+    const isFullClose = remainingSteps === 0;
+
     /*
      * Đóng position:
      *
@@ -1174,7 +1210,7 @@ export async function closePosition(userId: string, positionId: string) {
       position.side,
       entryPrice,
       normalizedClosePrice,
-      quantity,
+      closeQuantity,
     );
 
     const now = new Date().toISOString();
@@ -1185,23 +1221,34 @@ export async function closePosition(userId: string, positionId: string) {
      * Chỉ request đầu tiên được phép chuyển
      * Position từ OPEN sang CLOSED.
      */
-    const closedPosition = await tx.orm.public.Position.where({
+
+    const remainingUnrealizedPnl = isFullClose
+      ? 0
+      : calculatePnl(
+          position.side,
+          entryPrice,
+          normalizedClosePrice,
+          remainingQuantity,
+        );
+
+    const updatedPosition = await tx.orm.public.Position.where({
       id: position.id,
       accountId: account.id,
       status: "OPEN",
+      quantity: position.quantity,
     }).update({
-      quantity: ZERO,
+      quantity: String(remainingQuantity),
       currentPrice: formatPrice(normalizedClosePrice),
-      unrealizedPnl: ZERO,
-      status: "CLOSED",
-      closedAt: now,
+      unrealizedPnl: formatDecimal(remainingUnrealizedPnl),
+      status: isFullClose ? "CLOSED" : "OPEN",
+      closedAt: isFullClose ? now : null,
     });
 
-    if (!closedPosition) {
+    if (!updatedPosition) {
       throw new AppError(
-        "Position không tồn tại hoặc đã được đóng",
-        404,
-        "POSITION_NOT_FOUND",
+        "Position đã thay đổi hoặc đã được đóng",
+        409,
+        "POSITION_CONCURRENT_MODIFICATION",
       );
     }
 
@@ -1214,7 +1261,7 @@ export async function closePosition(userId: string, positionId: string) {
       symbol: position.symbol,
       side: closeSide,
       orderType: "MARKET",
-      quantity: String(quantity),
+      quantity: String(closeQuantity),
       requestedPrice: formatPrice(normalizedClosePrice),
       executedPrice: formatPrice(normalizedClosePrice),
       status: "FILLED",
@@ -1232,7 +1279,7 @@ export async function closePosition(userId: string, positionId: string) {
       positionId: position.id,
       symbol: position.symbol,
       side: closeSide,
-      quantity: String(quantity),
+      quantity: String(closeQuantity),
       entryPrice: formatPrice(entryPrice),
       exitPrice: formatPrice(normalizedClosePrice),
       realizedPnl: formatDecimal(realizedPnl),
@@ -1289,7 +1336,7 @@ export async function closePosition(userId: string, positionId: string) {
 
     return {
       order,
-      position: closedPosition,
+      position: updatedPosition,
       account: updatedAccount,
       realizedPnl,
       unrealizedPnl: totalUnrealizedPnl,
