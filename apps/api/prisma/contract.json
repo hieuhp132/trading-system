@@ -50,6 +50,23 @@
               }
             ]
           },
+          "CommissionType": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "NONE",
+                "value": "NONE"
+              },
+              {
+                "name": "PER_LOT",
+                "value": "PER_LOT"
+              },
+              {
+                "name": "PERCENT",
+                "value": "PERCENT"
+              }
+            ]
+          },
           "OrderSide": {
             "codecId": "pg/text@1",
             "members": [
@@ -90,6 +107,14 @@
               {
                 "name": "MARKET",
                 "value": "MARKET"
+              },
+              {
+                "name": "BUY_LIMIT",
+                "value": "BUY_LIMIT"
+              },
+              {
+                "name": "SELL_LIMIT",
+                "value": "SELL_LIMIT"
               }
             ]
           },
@@ -150,6 +175,26 @@
                   "kind": "scalar"
                 }
               },
+              "commissionType": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "CommissionType",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "commissionValue": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
               "createdAt": {
                 "nullable": false,
                 "type": {
@@ -185,6 +230,41 @@
                   "kind": "scalar"
                 }
               },
+              "marginCallLevel": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "markup": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "maxLeverage": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "minimumDeposit": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "minimumSpread": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
               "status": {
                 "nullable": false,
                 "type": {
@@ -196,6 +276,13 @@
                   "entityName": "AccountStatus",
                   "namespaceId": "public",
                   "plane": "domain"
+                }
+              },
+              "stopOutLevel": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
                 }
               },
               "updatedAt": {
@@ -284,6 +371,12 @@
                 "balance": {
                   "column": "balance"
                 },
+                "commissionType": {
+                  "column": "commissionType"
+                },
+                "commissionValue": {
+                  "column": "commissionValue"
+                },
                 "createdAt": {
                   "column": "createdAt"
                 },
@@ -299,8 +392,26 @@
                 "initialBalance": {
                   "column": "initialBalance"
                 },
+                "marginCallLevel": {
+                  "column": "marginCallLevel"
+                },
+                "markup": {
+                  "column": "markup"
+                },
+                "maxLeverage": {
+                  "column": "maxLeverage"
+                },
+                "minimumDeposit": {
+                  "column": "minimumDeposit"
+                },
+                "minimumSpread": {
+                  "column": "minimumSpread"
+                },
                 "status": {
                   "column": "status"
+                },
+                "stopOutLevel": {
+                  "column": "stopOutLevel"
                 },
                 "updatedAt": {
                   "column": "updatedAt"
@@ -491,10 +602,24 @@
                   "plane": "domain"
                 }
               },
+              "stopLoss": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
               "symbol": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "takeProfit": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
                   "kind": "scalar"
                 }
               }
@@ -567,8 +692,14 @@
                 "status": {
                   "column": "status"
                 },
+                "stopLoss": {
+                  "column": "stopLoss"
+                },
                 "symbol": {
                   "column": "symbol"
+                },
+                "takeProfit": {
+                  "column": "takeProfit"
                 }
               },
               "namespaceId": "public",
@@ -652,10 +783,24 @@
                   "plane": "domain"
                 }
               },
+              "stopLoss": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
               "symbol": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "takeProfit": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
                   "kind": "scalar"
                 }
               },
@@ -729,8 +874,14 @@
                 "status": {
                   "column": "status"
                 },
+                "stopLoss": {
+                  "column": "stopLoss"
+                },
                 "symbol": {
                   "column": "symbol"
+                },
+                "takeProfit": {
+                  "column": "takeProfit"
                 },
                 "unrealizedPnl": {
                   "column": "unrealizedPnl"
@@ -1051,6 +1202,11 @@
             "demoAccount": {
               "checks": [
                 {
+                  "expression": "\"commissionType\" IN ('NONE', 'PER_LOT', 'PERCENT')",
+                  "name": "demoAccount_commissionType_check_4e288e9b",
+                  "prefix": "demoAccount_commissionType_check"
+                },
+                {
                   "expression": "\"status\" IN ('ACTIVE', 'SUSPENDED', 'CLOSED')",
                   "name": "demoAccount_status_check_43917f8f",
                   "prefix": "demoAccount_status_check"
@@ -1064,6 +1220,30 @@
                 },
                 "balance": {
                   "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "commissionType": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "NONE"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "CommissionType",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "commissionValue": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
                   "nativeType": "numeric",
                   "nullable": false
                 },
@@ -1100,6 +1280,51 @@
                   "nativeType": "numeric",
                   "nullable": false
                 },
+                "marginCallLevel": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "100"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "markup": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "maxLeverage": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "100"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "minimumDeposit": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "100000"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "minimumSpread": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
                 "status": {
                   "codecId": "pg/text@1",
                   "default": {
@@ -1114,6 +1339,15 @@
                     "namespaceId": "public",
                     "plane": "storage"
                   }
+                },
+                "stopOutLevel": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "50"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false
                 },
                 "updatedAt": {
                   "codecId": "pg/timestamptz-string@1",
@@ -1232,8 +1466,8 @@
             "order": {
               "checks": [
                 {
-                  "expression": "\"orderType\" IN ('MARKET')",
-                  "name": "order_orderType_check_aa673cd1",
+                  "expression": "\"orderType\" IN ('MARKET', 'BUY_LIMIT', 'SELL_LIMIT')",
+                  "name": "order_orderType_check_7da144c0",
                   "prefix": "order_orderType_check"
                 },
                 {
@@ -1333,10 +1567,20 @@
                     "plane": "storage"
                   }
                 },
+                "stopLoss": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": true
+                },
                 "symbol": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": false
+                },
+                "takeProfit": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": true
                 }
               },
               "foreignKeys": [
@@ -1374,6 +1618,15 @@
                   ],
                   "name": "order_accountId_idx_cbfb3085",
                   "prefix": "order_accountId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "accountId",
+                    "status"
+                  ],
+                  "name": "order_accountId_status_idx_ed560107",
+                  "prefix": "order_accountId_status_idx",
                   "unique": false
                 }
               ],
@@ -1463,10 +1716,20 @@
                     "plane": "storage"
                   }
                 },
+                "stopLoss": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": true
+                },
                 "symbol": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": false
+                },
+                "takeProfit": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": true
                 },
                 "unrealizedPnl": {
                   "codecId": "pg/numeric@1",
@@ -1669,6 +1932,15 @@
               "indexes": [
                 {
                   "columns": [
+                    "accountId",
+                    "closedAt"
+                  ],
+                  "name": "trade_accountId_closedAt_idx_b4773c82",
+                  "prefix": "trade_accountId_closedAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
                     "accountId"
                   ],
                   "name": "trade_accountId_idx_cbfb3085",
@@ -1792,6 +2064,14 @@
                 "CLOSED"
               ]
             },
+            "CommissionType": {
+              "kind": "valueSet",
+              "values": [
+                "NONE",
+                "PER_LOT",
+                "PERCENT"
+              ]
+            },
             "OrderSide": {
               "kind": "valueSet",
               "values": [
@@ -1811,7 +2091,9 @@
             "OrderType": {
               "kind": "valueSet",
               "values": [
-                "MARKET"
+                "MARKET",
+                "BUY_LIMIT",
+                "SELL_LIMIT"
               ]
             },
             "PositionSide": {
@@ -1841,7 +2123,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "940ae0f097a9ce638e8b6d0e6590a8cb93a34222fbd6ba8ff7c5dfa8bbef7267"
+    "storageHash": "65fb868c362393109c6abb2cccad2bba5719278f22df317965e7b20673ab3e5e"
   },
   "execution": {
     "executionHash": "3d0095330e40ac07d2ac50355f4b5b8f4d51d8372e0a1ee92345287b32227a1d",

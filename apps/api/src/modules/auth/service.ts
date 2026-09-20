@@ -1,11 +1,11 @@
-import { AppError } from "../../common/errors/app-error";
-import { hashPassword, comparePassword } from "../../common/utils/password";
-import { signAccessToken } from "../../common/utils/jwt";
-import { db } from "../../database/prisma";
+import { AppError } from "../../common/errors/app-error.js";
+import { hashPassword, comparePassword } from "../../common/utils/password.js";
+import { signAccessToken } from "../../common/utils/jwt.js";
+import { db } from "../../database/prisma.js";
 
-import type { LoginInput, RegisterInput } from "./schema";
+import type { LoginInput, RegisterInput } from "./schema.js";
 
-import type { AuthResponse, AuthUser } from "./types";
+import type { AuthResponse, AuthUser } from "./types.js";
 
 function toAuthUser(user: {
   id: string;

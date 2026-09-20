@@ -1,6 +1,10 @@
 import type { Request, Response } from "express";
 
-import { createOrderSchema, closePositionSchema } from "./schema";
+import {
+  updatePositionStopsSchema,
+  createOrderSchema,
+  closePositionSchema,
+} from "./schema.js";
 
 import {
   createMarketOrder,
@@ -11,7 +15,8 @@ import {
   getMyTrades,
   getMyPortfolioSummary,
   closePosition,
-} from "./service";
+  updatePositionStops,
+} from "./service.js";
 
 function getParam(req: Request, name: string): string {
   const value = req.params[name];
@@ -106,4 +111,22 @@ export async function getPortfolioSummary(
 ): Promise<void> {
   const result = await getMyPortfolioSummary(res.locals.auth.sub);
   res.status(200).json({ success: true, data: result });
+}
+
+export async function updatePositionStopsController(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  const input = updatePositionStopsSchema.parse(req.body);
+
+  const result = await updatePositionStops(
+    res.locals.auth.sub,
+    getParam(req, "positionId"),
+    input,
+  );
+
+  res.status(200).json({
+    success: true,
+    data: result,
+  });
 }

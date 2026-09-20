@@ -1,6 +1,6 @@
 export type OrderSide = "BUY" | "SELL";
 
-export type OrderType = "MARKET";
+export type OrderType = "MARKET" | "BUY_LIMIT" | "SELL_LIMIT";
 
 export type OrderStatus = "PENDING" | "FILLED" | "REJECTED" | "CANCELLED";
 
@@ -21,6 +21,8 @@ export interface CreateOrderResponse {
   commission: string;
   createdAt: string;
   executedAt: string | null;
+  stopLoss: string | null;
+  takeProfit: string | null;
 }
 
 export interface OrderExecutionPositionResponse {
@@ -32,6 +34,8 @@ export interface OrderExecutionPositionResponse {
   currentPrice: string | null;
   unrealizedPnl: string;
   status: PositionStatus;
+  stopLoss: string | null;
+  takeProfit: string | null;
 }
 
 export interface PositionResponse extends OrderExecutionPositionResponse {

@@ -1,17 +1,17 @@
 import { Router } from "express";
 
-import { asyncHandler } from "../../common/utils/async-handler";
-import { validate } from "../../common/validators/validate";
+import { asyncHandler } from "../../common/utils/async-handler.js";
+import { validate } from "../../common/validators/validate.js";
 
-import { loginSchema, registerSchema } from "./schema";
+import { loginSchema, registerSchema } from "./schema.js";
 
 import {
   loginController,
   meController,
   registerController,
-} from "./controller";
+} from "./controller.js";
 
-import { requireAuth } from "./middleware";
+import { requireAuth } from "./middleware.js";
 
 const router = Router();
 

@@ -1,4 +1,4 @@
-import { db } from "../../database/prisma";
+import { db } from "../../database/prisma.js";
 
 export async function getHealthStatus() {
   const startedAt = Date.now();

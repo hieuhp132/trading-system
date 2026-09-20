@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 
-import { getCurrentUser } from "./service";
+import { getCurrentUser } from "./service.js";
 
 export async function getCurrentUserController(
   _req: Request,

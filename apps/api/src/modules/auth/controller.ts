@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { getAuthenticatedUser, login, register } from "./service";
+import { getAuthenticatedUser, login, register } from "./service.js";
 
 export async function registerController(
   req: Request,

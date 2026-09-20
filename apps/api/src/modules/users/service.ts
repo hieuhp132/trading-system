@@ -1,5 +1,5 @@
-import { AppError } from "../../common/errors/app-error";
-import { db } from "../../database/prisma";
+import { AppError } from "../../common/errors/app-error.js";
+import { db } from "../../database/prisma.js";
 
 export async function getCurrentUser(userId: string) {
   const user = await db.orm.public.User.first({

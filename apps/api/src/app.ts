@@ -3,13 +3,13 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 
-import { errorHandler } from "./common/errors/error-handler";
-import { notFoundHandler } from "./common/middleware/not-found-handler";
-import healthRouter from "./modules/health/route";
-import authRouter from "./modules/auth/route";
-import accountRouter from "./modules/accounts/route";
-import marketRouter from "./modules/market/route";
-import ordersRouter from "./modules/orders/route";
+import { errorHandler } from "./common/errors/error-handler.js";
+import { notFoundHandler } from "./common/middleware/not-found-handler.js";
+import healthRouter from "./modules/health/route.js";
+import authRouter from "./modules/auth/route.js";
+import accountRouter from "./modules/accounts/route.js";
+import marketRouter from "./modules/market/route.js";
+import ordersRouter from "./modules/orders/route.js";
 
 const app = express();
 

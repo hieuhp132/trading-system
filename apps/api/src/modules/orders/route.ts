@@ -1,7 +1,7 @@
 import { Router } from "express";
 
-import { requireAuth } from "../auth/middleware";
-import { asyncHandler } from "../../common/utils/async-handler";
+import { requireAuth } from "../auth/middleware.js";
+import { asyncHandler } from "../../common/utils/async-handler.js";
 import {
   createOrder,
   getOrder,
@@ -10,7 +10,9 @@ import {
   getPositions,
   getTrades,
   getPortfolioSummary,
-} from "./controller";
+  closePositionController,
+  updatePositionStopsController,
+} from "./controller.js";
 
 const router = Router();
 
@@ -23,5 +25,12 @@ router.get("/positions/:id", asyncHandler(getPosition));
 router.get("/trades", asyncHandler(getTrades));
 router.get("/:id", asyncHandler(getOrder));
 router.post("/", asyncHandler(createOrder));
-
+router.post(
+  "/positions/:positionId/close",
+  asyncHandler(closePositionController),
+);
+router.patch(
+  "/positions/:positionId/stops",
+  asyncHandler(updatePositionStopsController),
+);
 export default router;

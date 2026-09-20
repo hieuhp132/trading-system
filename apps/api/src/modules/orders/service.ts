@@ -1,6 +1,6 @@
-import { AppError } from "../../common/errors/app-error";
-import { db } from "../../database/prisma";
-import type { CreateOrderInput } from "./schema";
+import { AppError } from "../../common/errors/app-error.js";
+import { db } from "../../database/prisma.js";
+import type { CreateOrderInput } from "./schema.js";
 import type {
   CreateOrderResponse,
   OrderExecutionPositionResponse,
@@ -12,10 +12,14 @@ import type {
   TradeResponse,
   TradesListResponse,
   OrderType,
-} from "./types";
-import { calculateUnrealizedPnl, roundMoney } from "../../common/utils/pnl";
-import { getMarketPrice } from "../market/service";
-import { XAUUSD_SPEC } from "../../common/constants/xauusd";
+} from "./types.js";
+import { calculateUnrealizedPnl, roundMoney } from "../../common/utils/pnl.js";
+import { getMarketPrice } from "../market/service.js";
+import { XAUUSD_SPEC } from "../../common/constants/xauusd.js";
+import type { UpdatePositionStopsInput } from "./schema.js";
+import { validateStopLevels } from "./stop-levels.js";
+import { evaluateStopTrigger } from "./stop-trigger.js";
+import type { MarketPriceResponse } from "../market/types.js";
 
 const ZERO = "0";
 
@@ -164,6 +168,8 @@ function toOrderResponse(order: {
   quantity: unknown;
   requestedPrice: unknown;
   executedPrice: unknown;
+  stopLoss: unknown;
+  takeProfit: unknown;
   status: "PENDING" | "FILLED" | "REJECTED" | "CANCELLED";
   commission: unknown;
   createdAt: string;
@@ -188,6 +194,8 @@ function toOrderResponse(order: {
     commission: String(order.commission),
     createdAt: order.createdAt,
     executedAt: order.executedAt,
+    stopLoss: order.stopLoss === null ? null : String(order.stopLoss),
+    takeProfit: order.takeProfit === null ? null : String(order.takeProfit),
   };
 }
 
@@ -200,6 +208,8 @@ function toPositionResponse(position: {
   currentPrice: unknown;
   unrealizedPnl: unknown;
   status: "OPEN" | "CLOSED";
+  stopLoss: unknown;
+  takeProfit: unknown;
 }) {
   if (position.currentPrice === null) {
     throw new AppError(
@@ -218,6 +228,9 @@ function toPositionResponse(position: {
     currentPrice: formatPrice(Number(position.currentPrice)),
     unrealizedPnl: formatDecimal(Number(position.unrealizedPnl)),
     status: position.status,
+    stopLoss: position.stopLoss == null ? null : String(position.stopLoss),
+    takeProfit:
+      position.takeProfit == null ? null : String(position.takeProfit),
   };
 }
 
@@ -436,6 +449,14 @@ export async function createMarketOrder(
 
     const positionSide = input.side === "BUY" ? "LONG" : "SHORT";
 
+    validateStopLevels(
+      positionSide,
+      bid,
+      ask,
+      input.stopLoss,
+      input.takeProfit,
+    );
+
     /*
      * Tìm position cùng chiều đang OPEN.
      */
@@ -446,6 +467,16 @@ export async function createMarketOrder(
       side: positionSide,
     }).first();
 
+    if (
+      existingPosition &&
+      (input.stopLoss !== undefined || input.takeProfit !== undefined)
+    ) {
+      throw new AppError(
+        "Position đã tồn tại. Hãy cập nhật SL/TP qua endpoint riêng.",
+        400,
+        "POSITION_STOPS_UPDATE_REQUIRED",
+      );
+    }
     /*
      * ============================================================
      * CREATE ORDER
@@ -465,6 +496,8 @@ export async function createMarketOrder(
       quantity: input.quantity,
       requestedPrice: formatPrice(normalizedExecutedPrice),
       executedPrice: formatPrice(normalizedExecutedPrice),
+      stopLoss: input.stopLoss ?? null,
+      takeProfit: input.takeProfit ?? null,
       status: "FILLED",
       commission: ZERO,
       createdAt: now,
@@ -574,6 +607,8 @@ export async function createMarketOrder(
         averageEntryPrice: formatPrice(normalizedExecutedPrice),
         currentPrice: formatPrice(normalizedExecutedPrice),
         unrealizedPnl: ZERO,
+        stopLoss: input.stopLoss ?? null,
+        takeProfit: input.takeProfit ?? null,
         status: "OPEN",
       });
 
@@ -652,6 +687,8 @@ export async function createMarketOrder(
         quantity: order.quantity,
         requestedPrice: order.requestedPrice,
         executedPrice: order.executedPrice,
+        stopLoss: order.stopLoss == null ? null : String(order.stopLoss),
+        takeProfit: order.takeProfit == null ? null : String(order.takeProfit),
         status: order.status,
         commission: order.commission,
         createdAt: order.createdAt,
@@ -749,6 +786,8 @@ function toPositionListResponse(position: {
   averageEntryPrice: unknown;
   currentPrice: unknown;
   unrealizedPnl: unknown;
+  stopLoss: unknown;
+  takeProfit: unknown;
   status: "OPEN" | "CLOSED";
   openedAt: string;
   closedAt: string | null;
@@ -764,6 +803,9 @@ function toPositionListResponse(position: {
         ? null
         : formatPrice(Number(position.currentPrice)),
     unrealizedPnl: formatDecimal(Number(position.unrealizedPnl)),
+    stopLoss: position.stopLoss == null ? null : String(position.stopLoss),
+    takeProfit:
+      position.takeProfit == null ? null : String(position.takeProfit),
     status: position.status,
     openedAt: position.openedAt,
     closedAt: position.closedAt,
@@ -851,6 +893,9 @@ export async function getMyPositions(
         averageEntryPrice: formatPrice(entryPrice),
         currentPrice: formatPrice(currentPrice),
         unrealizedPnl: formatDecimal(unrealizedPnl),
+        stopLoss: position.stopLoss == null ? null : String(position.stopLoss),
+        takeProfit:
+          position.takeProfit == null ? null : String(position.takeProfit),
         status: position.status,
         openedAt: position.openedAt,
         closedAt: position.closedAt,
@@ -1090,12 +1135,72 @@ export async function getMyPortfolioSummary(
   };
 }
 
-export async function closePosition(
+interface AutomaticCloseOptions {
+  quote: MarketPriceResponse;
+}
+
+function validateAutomaticQuoteFreshness(quote: MarketPriceResponse): void {
+  const maxAgeMs = Number(process.env.STOP_WORKER_MAX_QUOTE_AGE_MS ?? 5000);
+
+  if (!Number.isInteger(maxAgeMs) || maxAgeMs < 100) {
+    throw new AppError(
+      "Cấu hình thời hạn market quote không hợp lệ",
+      500,
+      "INVALID_STOP_QUOTE_MAX_AGE",
+    );
+  }
+
+  const timestamp = Date.parse(quote.timestamp);
+  const now = Date.now();
+
+  if (
+    !Number.isFinite(timestamp) ||
+    timestamp > now + 1000 ||
+    now - timestamp > maxAgeMs
+  ) {
+    throw new AppError(
+      "Market quote đã hết hạn hoặc timestamp không hợp lệ",
+      502,
+      "STALE_MARKET_QUOTE",
+    );
+  }
+}
+
+async function closePositionInternal(
   userId: string,
   positionId: string,
   requestedQuantity?: string,
+  automatic?: AutomaticCloseOptions,
 ) {
-  const marketPrice = await getMarketPrice(XAUUSD_SPEC.symbol);
+  const marketPrice =
+    automatic?.quote ?? (await getMarketPrice(XAUUSD_SPEC.symbol));
+
+  if (automatic) {
+    if (marketPrice.symbol !== XAUUSD_SPEC.symbol) {
+      throw new AppError(
+        "Market quote không đúng symbol",
+        502,
+        "INVALID_MARKET_SYMBOL",
+      );
+    }
+
+    const bid = Number(marketPrice.bid);
+    const ask = Number(marketPrice.ask);
+
+    if (
+      !Number.isFinite(bid) ||
+      !Number.isFinite(ask) ||
+      bid <= 0 ||
+      ask <= 0 ||
+      bid > ask
+    ) {
+      throw new AppError(
+        "Market quote không hợp lệ",
+        502,
+        "INVALID_MARKET_PRICE",
+      );
+    }
+  }
 
   const result = await db.transaction(async (tx) => {
     const accountRef = await tx.orm.public.DemoAccount.where({
@@ -1112,6 +1217,12 @@ export async function closePosition(
 
     // Phải khóa trước khi đọc balance và các OPEN positions.
     await lockDemoAccount(tx, accountRef.id);
+
+    // Quote có thể hết hạn trong lúc chờ khóa database.
+    // Kiểm tra sau khi lấy khóa, trước mọi thao tác ghi.
+    if (automatic) {
+      validateAutomaticQuoteFreshness(marketPrice);
+    }
 
     // Đọc lại dữ liệu sau khi lấy được khóa.
     const account = await tx.orm.public.DemoAccount.where({
@@ -1141,11 +1252,34 @@ export async function closePosition(
     }).first();
 
     if (!position) {
+      if (automatic) {
+        return null;
+      }
+
       throw new AppError(
         "Position không tồn tại hoặc đã được đóng",
         404,
         "POSITION_NOT_FOUND",
       );
+    }
+
+    if (automatic) {
+      const trigger = evaluateStopTrigger(
+        {
+          side: position.side,
+          stopLoss:
+            position.stopLoss == null ? null : String(position.stopLoss),
+          takeProfit:
+            position.takeProfit == null ? null : String(position.takeProfit),
+        },
+        marketPrice,
+      );
+
+      // Position vẫn OPEN nhưng giá không còn chạm SL/TP,
+      // hoặc SL/TP đã được người dùng thay đổi.
+      if (!trigger.triggered) {
+        return null;
+      }
     }
 
     const quantity = toNumber(position.quantity);
@@ -1230,6 +1364,10 @@ export async function closePosition(
           normalizedClosePrice,
           remainingQuantity,
         );
+
+    if (automatic) {
+      validateAutomaticQuoteFreshness(marketPrice);
+    }
 
     const updatedPosition = await tx.orm.public.Position.where({
       id: position.id,
@@ -1343,6 +1481,10 @@ export async function closePosition(
     };
   });
 
+  if (result === null) {
+    return null;
+  }
+
   return {
     order: toOrderResponse(result.order),
 
@@ -1367,4 +1509,145 @@ export async function closePosition(
 
     realizedPnl: formatDecimal(result.realizedPnl),
   };
+}
+
+/**
+ * Manual Close:
+ * Giữ nguyên API và hỗ trợ đóng một phần Position.
+ */
+export async function closePosition(
+  userId: string,
+  positionId: string,
+  requestedQuantity?: string,
+) {
+  const result = await closePositionInternal(
+    userId,
+    positionId,
+    requestedQuantity,
+  );
+
+  if (result === null) {
+    throw new AppError(
+      "Manual Close không trả về kết quả",
+      500,
+      "MANUAL_CLOSE_UNEXPECTED_RESULT",
+    );
+  }
+
+  return result;
+}
+
+/**
+ * Automatic SL/TP:
+ * null = không còn điều kiện trigger sau khi khóa tài khoản.
+ * Thành công = trả về kết quả đóng Position.
+ *
+ * Chưa trả reason cho đến khi reason được ghi nhận
+ * trực tiếp trong transaction.
+ */
+export async function executeTriggeredStop(
+  userId: string,
+  positionId: string,
+  quote: MarketPriceResponse,
+) {
+  return closePositionInternal(userId, positionId, undefined, { quote });
+}
+
+export async function updatePositionStops(
+  userId: string,
+  positionId: string,
+  input: UpdatePositionStopsInput,
+) {
+  const marketPrice = await getMarketPrice(XAUUSD_SPEC.symbol);
+
+  return db.transaction(async (tx) => {
+    const accountRef = await tx.orm.public.DemoAccount.where({
+      userId,
+    }).first();
+
+    if (!accountRef) {
+      throw new AppError(
+        "Không tìm thấy demo account",
+        404,
+        "DEMO_ACCOUNT_NOT_FOUND",
+      );
+    }
+
+    await lockDemoAccount(tx, accountRef.id);
+
+    const account = await tx.orm.public.DemoAccount.where({
+      id: accountRef.id,
+    }).first();
+
+    if (!account || account.status !== "ACTIVE") {
+      throw new AppError(
+        "Demo account không hoạt động",
+        400,
+        "DEMO_ACCOUNT_NOT_ACTIVE",
+      );
+    }
+
+    const position = await tx.orm.public.Position.where({
+      id: positionId,
+      accountId: account.id,
+      status: "OPEN",
+    }).first();
+
+    if (!position) {
+      throw new AppError(
+        "Position không tồn tại hoặc đã đóng",
+        404,
+        "POSITION_NOT_FOUND",
+      );
+    }
+
+    const stopLoss =
+      input.stopLoss === undefined
+        ? position.stopLoss === null
+          ? null
+          : String(position.stopLoss)
+        : input.stopLoss;
+
+    const takeProfit =
+      input.takeProfit === undefined
+        ? position.takeProfit === null
+          ? null
+          : String(position.takeProfit)
+        : input.takeProfit;
+
+    validateStopLevels(
+      position.side,
+      Number(marketPrice.bid),
+      Number(marketPrice.ask),
+      stopLoss,
+      takeProfit,
+    );
+
+    const updated = await tx.orm.public.Position.where({
+      id: position.id,
+      accountId: account.id,
+      status: "OPEN",
+    }).update({
+      stopLoss,
+      takeProfit,
+    });
+
+    if (!updated) {
+      throw new AppError(
+        "Position đã thay đổi",
+        409,
+        "POSITION_CONCURRENT_MODIFICATION",
+      );
+    }
+
+    return {
+      id: updated.id,
+      symbol: updated.symbol,
+      side: updated.side,
+      status: updated.status,
+      stopLoss: updated.stopLoss === null ? null : String(updated.stopLoss),
+      takeProfit:
+        updated.takeProfit === null ? null : String(updated.takeProfit),
+    };
+  });
 }

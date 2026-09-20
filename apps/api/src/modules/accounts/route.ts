@@ -1,17 +1,22 @@
 import { Router } from "express";
 
-import { requireAuth } from "../auth/middleware";
-
-import { createDemo, getAccount, getAccountBalance } from "./controller";
+import { requireAuth } from "../auth/middleware.js";
+import { asyncHandler } from "../../common/utils/async-handler.js";
+import {
+  createDemo,
+  getAccount,
+  getAccountBalance,
+  getAccountTradingConditions,
+} from "./controller.js";
 
 const router = Router();
 
 router.use(requireAuth);
 
-router.post("/demo", createDemo);
+router.post("/demo", asyncHandler(createDemo));
 
-router.get("/", getAccount);
+router.get("/", asyncHandler(getAccount));
 
-router.get("/balance", getAccountBalance);
-
+router.get("/balance", asyncHandler(getAccountBalance));
+router.get("/trading-conditions", asyncHandler(getAccountTradingConditions));
 export default router;

@@ -1,9 +1,9 @@
 import { Router } from "express";
 
-import { healthController } from "./controller";
-import { AppError } from "../../common/errors/app-error";
-import { asyncHandler } from "../../common/utils/async-handler";
-import { validate } from "../../common/validators/validate";
+import { healthController } from "./controller.js";
+import { AppError } from "../../common/errors/app-error.js";
+import { asyncHandler } from "../../common/utils/async-handler.js";
+import { validate } from "../../common/validators/validate.js";
 
 import { z } from "zod";
 

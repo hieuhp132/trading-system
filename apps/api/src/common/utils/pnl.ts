@@ -1,4 +1,5 @@
-import type { PositionSide } from "../../modules/orders/types";
+import type { PositionSide } from "../../modules/orders/types.js";
+import { XAUUSD_SPEC } from "../constants/xauusd.js";
 
 export function calculateUnrealizedPnl(
   side: PositionSide,
@@ -6,11 +7,12 @@ export function calculateUnrealizedPnl(
   averageEntryPrice: number,
   currentPrice: number,
 ): number {
-  if (side === "LONG") {
-    return (currentPrice - averageEntryPrice) * quantity;
-  }
+  const priceDifference =
+    side === "LONG"
+      ? currentPrice - averageEntryPrice
+      : averageEntryPrice - currentPrice;
 
-  return (averageEntryPrice - currentPrice) * quantity;
+  return priceDifference * quantity * XAUUSD_SPEC.contractSize;
 }
 
 export function roundMoney(value: number): string {

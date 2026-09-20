@@ -1,6 +1,6 @@
 import type { RequestHandler } from "express";
-import { AppError } from "../../common/errors/app-error";
-import { verifyAccessToken } from "../../common/utils/jwt";
+import { AppError } from "../../common/errors/app-error.js";
+import { verifyAccessToken } from "../../common/utils/jwt.js";
 
 export const requireAuth: RequestHandler = (req, _res, next) => {
   const authorization = req.headers.authorization;

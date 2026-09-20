@@ -4,7 +4,8 @@ import {
   createDemoAccount,
   getMyAccount,
   getMyAccountBalance,
-} from "./service";
+  getMyAccountTradingConditions,
+} from "./service.js";
 
 export async function createDemo(_req: Request, res: Response): Promise<void> {
   const account = await createDemoAccount(res.locals.auth.sub);
@@ -33,5 +34,17 @@ export async function getAccountBalance(
   res.status(200).json({
     success: true,
     data: balance,
+  });
+}
+
+export async function getAccountTradingConditions(
+  _req: Request,
+  res: Response,
+): Promise<void> {
+  const conditions = await getMyAccountTradingConditions(res.locals.auth.sub);
+
+  res.status(200).json({
+    success: true,
+    data: conditions,
   });
 }

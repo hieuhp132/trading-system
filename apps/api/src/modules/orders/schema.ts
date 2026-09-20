@@ -91,3 +91,30 @@ export const closePositionSchema = z.object({
 });
 export type ClosePositionInput = z.infer<typeof closePositionSchema>;
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
+
+const stopPriceSchema = z
+  .string()
+  .trim()
+  .regex(/^\d+(\.\d+)?$/, {
+    message: "Giá phải là số dương",
+  })
+  .refine((value) => Number.isFinite(Number(value)) && Number(value) > 0, {
+    message: "Giá phải lớn hơn 0",
+  });
+
+export const updatePositionStopsSchema = z
+  .object({
+    stopLoss: stopPriceSchema.nullable().optional(),
+    takeProfit: stopPriceSchema.nullable().optional(),
+  })
+  .strict()
+  .refine(
+    (data) => data.stopLoss !== undefined || data.takeProfit !== undefined,
+    {
+      message: "Cần cung cấp stopLoss hoặc takeProfit",
+    },
+  );
+
+export type UpdatePositionStopsInput = z.infer<
+  typeof updatePositionStopsSchema
+>;

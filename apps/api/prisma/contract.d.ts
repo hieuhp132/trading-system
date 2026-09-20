@@ -34,7 +34,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'940ae0f097a9ce638e8b6d0e6590a8cb93a34222fbd6ba8ff7c5dfa8bbef7267'>;
+  StorageHashBase<'65fb868c362393109c6abb2cccad2bba5719278f22df317965e7b20673ab3e5e'>;
 export type ExecutionHash =
   ExecutionHashBase<'3d0095330e40ac07d2ac50355f4b5b8f4d51d8372e0a1ee92345287b32227a1d'>;
 export type ProfileHash =
@@ -250,6 +250,14 @@ export type FieldOutputTypes = {
       readonly initialBalance: CodecTypes['pg/numeric@1']['output'];
       readonly balance: CodecTypes['pg/numeric@1']['output'];
       readonly equity: CodecTypes['pg/numeric@1']['output'];
+      readonly minimumDeposit: CodecTypes['pg/numeric@1']['output'];
+      readonly maxLeverage: CodecTypes['pg/numeric@1']['output'];
+      readonly commissionType: 'NONE' | 'PER_LOT' | 'PERCENT';
+      readonly commissionValue: CodecTypes['pg/numeric@1']['output'];
+      readonly minimumSpread: CodecTypes['pg/numeric@1']['output'];
+      readonly markup: CodecTypes['pg/numeric@1']['output'];
+      readonly marginCallLevel: CodecTypes['pg/numeric@1']['output'];
+      readonly stopOutLevel: CodecTypes['pg/numeric@1']['output'];
       readonly status: 'ACTIVE' | 'SUSPENDED' | 'CLOSED';
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
@@ -268,10 +276,12 @@ export type FieldOutputTypes = {
       readonly accountId: CodecTypes['pg/text@1']['output'];
       readonly symbol: CodecTypes['pg/text@1']['output'];
       readonly side: 'BUY' | 'SELL';
-      readonly orderType: 'MARKET';
+      readonly orderType: 'MARKET' | 'BUY_LIMIT' | 'SELL_LIMIT';
       readonly quantity: CodecTypes['pg/numeric@1']['output'];
       readonly requestedPrice: CodecTypes['pg/numeric@1']['output'] | null;
       readonly executedPrice: CodecTypes['pg/numeric@1']['output'] | null;
+      readonly stopLoss: CodecTypes['pg/numeric@1']['output'] | null;
+      readonly takeProfit: CodecTypes['pg/numeric@1']['output'] | null;
       readonly status: 'PENDING' | 'FILLED' | 'REJECTED' | 'CANCELLED';
       readonly commission: CodecTypes['pg/numeric@1']['output'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
@@ -286,6 +296,8 @@ export type FieldOutputTypes = {
       readonly averageEntryPrice: CodecTypes['pg/numeric@1']['output'];
       readonly currentPrice: CodecTypes['pg/numeric@1']['output'] | null;
       readonly unrealizedPnl: CodecTypes['pg/numeric@1']['output'];
+      readonly stopLoss: CodecTypes['pg/numeric@1']['output'] | null;
+      readonly takeProfit: CodecTypes['pg/numeric@1']['output'] | null;
       readonly status: 'OPEN' | 'CLOSED';
       readonly openedAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly closedAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
@@ -326,6 +338,14 @@ export type FieldInputTypes = {
       readonly initialBalance: CodecTypes['pg/numeric@1']['input'];
       readonly balance: CodecTypes['pg/numeric@1']['input'];
       readonly equity: CodecTypes['pg/numeric@1']['input'];
+      readonly minimumDeposit: CodecTypes['pg/numeric@1']['input'];
+      readonly maxLeverage: CodecTypes['pg/numeric@1']['input'];
+      readonly commissionType: 'NONE' | 'PER_LOT' | 'PERCENT';
+      readonly commissionValue: CodecTypes['pg/numeric@1']['input'];
+      readonly minimumSpread: CodecTypes['pg/numeric@1']['input'];
+      readonly markup: CodecTypes['pg/numeric@1']['input'];
+      readonly marginCallLevel: CodecTypes['pg/numeric@1']['input'];
+      readonly stopOutLevel: CodecTypes['pg/numeric@1']['input'];
       readonly status: 'ACTIVE' | 'SUSPENDED' | 'CLOSED';
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
@@ -344,10 +364,12 @@ export type FieldInputTypes = {
       readonly accountId: CodecTypes['pg/text@1']['input'];
       readonly symbol: CodecTypes['pg/text@1']['input'];
       readonly side: 'BUY' | 'SELL';
-      readonly orderType: 'MARKET';
+      readonly orderType: 'MARKET' | 'BUY_LIMIT' | 'SELL_LIMIT';
       readonly quantity: CodecTypes['pg/numeric@1']['input'];
       readonly requestedPrice: CodecTypes['pg/numeric@1']['input'] | null;
       readonly executedPrice: CodecTypes['pg/numeric@1']['input'] | null;
+      readonly stopLoss: CodecTypes['pg/numeric@1']['input'] | null;
+      readonly takeProfit: CodecTypes['pg/numeric@1']['input'] | null;
       readonly status: 'PENDING' | 'FILLED' | 'REJECTED' | 'CANCELLED';
       readonly commission: CodecTypes['pg/numeric@1']['input'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
@@ -362,6 +384,8 @@ export type FieldInputTypes = {
       readonly averageEntryPrice: CodecTypes['pg/numeric@1']['input'];
       readonly currentPrice: CodecTypes['pg/numeric@1']['input'] | null;
       readonly unrealizedPnl: CodecTypes['pg/numeric@1']['input'];
+      readonly stopLoss: CodecTypes['pg/numeric@1']['input'] | null;
+      readonly takeProfit: CodecTypes['pg/numeric@1']['input'] | null;
       readonly status: 'OPEN' | 'CLOSED';
       readonly openedAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly closedAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
@@ -397,12 +421,20 @@ export type StorageColumnTypes = {
     readonly demoAccount: {
       readonly accountNumber: CodecTypes['pg/text@1']['output'];
       readonly balance: CodecTypes['pg/numeric@1']['output'];
+      readonly commissionType: 'NONE' | 'PER_LOT' | 'PERCENT';
+      readonly commissionValue: CodecTypes['pg/numeric@1']['output'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly currency: CodecTypes['pg/text@1']['output'];
       readonly equity: CodecTypes['pg/numeric@1']['output'];
       readonly id: CodecTypes['pg/text@1']['output'];
       readonly initialBalance: CodecTypes['pg/numeric@1']['output'];
+      readonly marginCallLevel: CodecTypes['pg/numeric@1']['output'];
+      readonly markup: CodecTypes['pg/numeric@1']['output'];
+      readonly maxLeverage: CodecTypes['pg/numeric@1']['output'];
+      readonly minimumDeposit: CodecTypes['pg/numeric@1']['output'];
+      readonly minimumSpread: CodecTypes['pg/numeric@1']['output'];
       readonly status: 'ACTIVE' | 'SUSPENDED' | 'CLOSED';
+      readonly stopOutLevel: CodecTypes['pg/numeric@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly userId: CodecTypes['pg/text@1']['output'];
     };
@@ -422,12 +454,14 @@ export type StorageColumnTypes = {
       readonly executedAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
       readonly executedPrice: CodecTypes['pg/numeric@1']['output'] | null;
       readonly id: CodecTypes['pg/text@1']['output'];
-      readonly orderType: 'MARKET';
+      readonly orderType: 'MARKET' | 'BUY_LIMIT' | 'SELL_LIMIT';
       readonly quantity: CodecTypes['pg/numeric@1']['output'];
       readonly requestedPrice: CodecTypes['pg/numeric@1']['output'] | null;
       readonly side: 'BUY' | 'SELL';
       readonly status: 'PENDING' | 'FILLED' | 'REJECTED' | 'CANCELLED';
+      readonly stopLoss: CodecTypes['pg/numeric@1']['output'] | null;
       readonly symbol: CodecTypes['pg/text@1']['output'];
+      readonly takeProfit: CodecTypes['pg/numeric@1']['output'] | null;
     };
     readonly position: {
       readonly accountId: CodecTypes['pg/text@1']['output'];
@@ -439,7 +473,9 @@ export type StorageColumnTypes = {
       readonly quantity: CodecTypes['pg/numeric@1']['output'];
       readonly side: 'LONG' | 'SHORT';
       readonly status: 'OPEN' | 'CLOSED';
+      readonly stopLoss: CodecTypes['pg/numeric@1']['output'] | null;
       readonly symbol: CodecTypes['pg/text@1']['output'];
+      readonly takeProfit: CodecTypes['pg/numeric@1']['output'] | null;
       readonly unrealizedPnl: CodecTypes['pg/numeric@1']['output'];
     };
     readonly trade: {
@@ -473,12 +509,20 @@ export type StorageColumnInputTypes = {
     readonly demoAccount: {
       readonly accountNumber: CodecTypes['pg/text@1']['input'];
       readonly balance: CodecTypes['pg/numeric@1']['input'];
+      readonly commissionType: 'NONE' | 'PER_LOT' | 'PERCENT';
+      readonly commissionValue: CodecTypes['pg/numeric@1']['input'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly currency: CodecTypes['pg/text@1']['input'];
       readonly equity: CodecTypes['pg/numeric@1']['input'];
       readonly id: CodecTypes['pg/text@1']['input'];
       readonly initialBalance: CodecTypes['pg/numeric@1']['input'];
+      readonly marginCallLevel: CodecTypes['pg/numeric@1']['input'];
+      readonly markup: CodecTypes['pg/numeric@1']['input'];
+      readonly maxLeverage: CodecTypes['pg/numeric@1']['input'];
+      readonly minimumDeposit: CodecTypes['pg/numeric@1']['input'];
+      readonly minimumSpread: CodecTypes['pg/numeric@1']['input'];
       readonly status: 'ACTIVE' | 'SUSPENDED' | 'CLOSED';
+      readonly stopOutLevel: CodecTypes['pg/numeric@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly userId: CodecTypes['pg/text@1']['input'];
     };
@@ -498,12 +542,14 @@ export type StorageColumnInputTypes = {
       readonly executedAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
       readonly executedPrice: CodecTypes['pg/numeric@1']['input'] | null;
       readonly id: CodecTypes['pg/text@1']['input'];
-      readonly orderType: 'MARKET';
+      readonly orderType: 'MARKET' | 'BUY_LIMIT' | 'SELL_LIMIT';
       readonly quantity: CodecTypes['pg/numeric@1']['input'];
       readonly requestedPrice: CodecTypes['pg/numeric@1']['input'] | null;
       readonly side: 'BUY' | 'SELL';
       readonly status: 'PENDING' | 'FILLED' | 'REJECTED' | 'CANCELLED';
+      readonly stopLoss: CodecTypes['pg/numeric@1']['input'] | null;
       readonly symbol: CodecTypes['pg/text@1']['input'];
+      readonly takeProfit: CodecTypes['pg/numeric@1']['input'] | null;
     };
     readonly position: {
       readonly accountId: CodecTypes['pg/text@1']['input'];
@@ -515,7 +561,9 @@ export type StorageColumnInputTypes = {
       readonly quantity: CodecTypes['pg/numeric@1']['input'];
       readonly side: 'LONG' | 'SHORT';
       readonly status: 'OPEN' | 'CLOSED';
+      readonly stopLoss: CodecTypes['pg/numeric@1']['input'] | null;
       readonly symbol: CodecTypes['pg/text@1']['input'];
+      readonly takeProfit: CodecTypes['pg/numeric@1']['input'] | null;
       readonly unrealizedPnl: CodecTypes['pg/numeric@1']['input'];
     };
     readonly trade: {
@@ -565,6 +613,14 @@ export namespace Models {
     initialBalance: CodecTypes['pg/numeric@1']['output'];
     balance: CodecTypes['pg/numeric@1']['output'];
     equity: CodecTypes['pg/numeric@1']['output'];
+    minimumDeposit: CodecTypes['pg/numeric@1']['output'];
+    maxLeverage: CodecTypes['pg/numeric@1']['output'];
+    commissionType: 'NONE' | 'PER_LOT' | 'PERCENT';
+    commissionValue: CodecTypes['pg/numeric@1']['output'];
+    minimumSpread: CodecTypes['pg/numeric@1']['output'];
+    markup: CodecTypes['pg/numeric@1']['output'];
+    marginCallLevel: CodecTypes['pg/numeric@1']['output'];
+    stopOutLevel: CodecTypes['pg/numeric@1']['output'];
     status: 'ACTIVE' | 'SUSPENDED' | 'CLOSED';
     createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
     updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
@@ -589,10 +645,12 @@ export namespace Models {
     accountId: CodecTypes['pg/text@1']['output'];
     symbol: CodecTypes['pg/text@1']['output'];
     side: 'BUY' | 'SELL';
-    orderType: 'MARKET';
+    orderType: 'MARKET' | 'BUY_LIMIT' | 'SELL_LIMIT';
     quantity: CodecTypes['pg/numeric@1']['output'];
     requestedPrice: CodecTypes['pg/numeric@1']['output'] | null;
     executedPrice: CodecTypes['pg/numeric@1']['output'] | null;
+    stopLoss: CodecTypes['pg/numeric@1']['output'] | null;
+    takeProfit: CodecTypes['pg/numeric@1']['output'] | null;
     status: 'PENDING' | 'FILLED' | 'REJECTED' | 'CANCELLED';
     commission: CodecTypes['pg/numeric@1']['output'];
     createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
@@ -610,6 +668,8 @@ export namespace Models {
     averageEntryPrice: CodecTypes['pg/numeric@1']['output'];
     currentPrice: CodecTypes['pg/numeric@1']['output'] | null;
     unrealizedPnl: CodecTypes['pg/numeric@1']['output'];
+    stopLoss: CodecTypes['pg/numeric@1']['output'] | null;
+    takeProfit: CodecTypes['pg/numeric@1']['output'] | null;
     status: 'OPEN' | 'CLOSED';
     openedAt: CodecTypes['pg/timestamptz-string@1']['output'];
     closedAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
@@ -707,6 +767,78 @@ type ContractBase = Omit<
                   readonly nativeType: 'numeric';
                   readonly codecId: 'pg/numeric@1';
                   readonly nullable: false;
+                };
+                readonly minimumDeposit: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '100000'>;
+                  };
+                };
+                readonly maxLeverage: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '100'>;
+                  };
+                };
+                readonly commissionType: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'NONE'>;
+                  };
+                };
+                readonly commissionValue: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
+                  };
+                };
+                readonly minimumSpread: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
+                  };
+                };
+                readonly markup: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '0'>;
+                  };
+                };
+                readonly marginCallLevel: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '100'>;
+                  };
+                };
+                readonly stopOutLevel: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/numeric@1', '50'>;
+                  };
                 };
                 readonly status: {
                   readonly nativeType: 'text';
@@ -851,6 +983,16 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/numeric@1';
                   readonly nullable: true;
                 };
+                readonly stopLoss: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: true;
+                };
+                readonly takeProfit: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: true;
+                };
                 readonly status: {
                   readonly nativeType: 'text';
                   readonly codecId: 'pg/text@1';
@@ -884,6 +1026,12 @@ type ContractBase = Omit<
                   readonly name: 'order_accountId_createdAt_idx_843b5d93';
                   readonly prefix: 'order_accountId_createdAt_idx';
                   readonly columns: readonly ['accountId', 'createdAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'order_accountId_status_idx_ed560107';
+                  readonly prefix: 'order_accountId_status_idx';
+                  readonly columns: readonly ['accountId', 'status'];
                   readonly unique: false;
                 },
                 {
@@ -949,6 +1097,16 @@ type ContractBase = Omit<
                   readonly nativeType: 'numeric';
                   readonly codecId: 'pg/numeric@1';
                   readonly nullable: false;
+                };
+                readonly stopLoss: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: true;
+                };
+                readonly takeProfit: {
+                  readonly nativeType: 'numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: true;
                 };
                 readonly status: {
                   readonly nativeType: 'text';
@@ -1087,6 +1245,12 @@ type ContractBase = Omit<
                   readonly unique: false;
                 },
                 {
+                  readonly name: 'trade_accountId_closedAt_idx_b4773c82';
+                  readonly prefix: 'trade_accountId_closedAt_idx';
+                  readonly columns: readonly ['accountId', 'closedAt'];
+                  readonly unique: false;
+                },
+                {
                   readonly name: 'trade_accountId_idx_cbfb3085';
                   readonly prefix: 'trade_accountId_idx';
                   readonly columns: readonly ['accountId'];
@@ -1198,6 +1362,10 @@ type ContractBase = Omit<
               readonly kind: 'valueSet';
               readonly values: readonly ['ACTIVE', 'SUSPENDED', 'CLOSED'];
             };
+            readonly CommissionType: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['NONE', 'PER_LOT', 'PERCENT'];
+            };
             readonly OrderSide: {
               readonly kind: 'valueSet';
               readonly values: readonly ['BUY', 'SELL'];
@@ -1206,7 +1374,10 @@ type ContractBase = Omit<
               readonly kind: 'valueSet';
               readonly values: readonly ['PENDING', 'FILLED', 'REJECTED', 'CANCELLED'];
             };
-            readonly OrderType: { readonly kind: 'valueSet'; readonly values: readonly ['MARKET'] };
+            readonly OrderType: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['MARKET', 'BUY_LIMIT', 'SELL_LIMIT'];
+            };
             readonly PositionSide: {
               readonly kind: 'valueSet';
               readonly values: readonly ['LONG', 'SHORT'];
@@ -1274,6 +1445,38 @@ type ContractBase = Omit<
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
               };
               readonly equity: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly minimumDeposit: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly maxLeverage: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly commissionType: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly commissionValue: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly minimumSpread: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly markup: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly marginCallLevel: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly stopOutLevel: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
               };
@@ -1351,6 +1554,14 @@ type ContractBase = Omit<
                 readonly initialBalance: { readonly column: 'initialBalance' };
                 readonly balance: { readonly column: 'balance' };
                 readonly equity: { readonly column: 'equity' };
+                readonly minimumDeposit: { readonly column: 'minimumDeposit' };
+                readonly maxLeverage: { readonly column: 'maxLeverage' };
+                readonly commissionType: { readonly column: 'commissionType' };
+                readonly commissionValue: { readonly column: 'commissionValue' };
+                readonly minimumSpread: { readonly column: 'minimumSpread' };
+                readonly markup: { readonly column: 'markup' };
+                readonly marginCallLevel: { readonly column: 'marginCallLevel' };
+                readonly stopOutLevel: { readonly column: 'stopOutLevel' };
                 readonly status: { readonly column: 'status' };
                 readonly createdAt: { readonly column: 'createdAt' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
@@ -1440,6 +1651,14 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
               };
+              readonly stopLoss: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly takeProfit: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
               readonly status: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
@@ -1500,6 +1719,8 @@ type ContractBase = Omit<
                 readonly quantity: { readonly column: 'quantity' };
                 readonly requestedPrice: { readonly column: 'requestedPrice' };
                 readonly executedPrice: { readonly column: 'executedPrice' };
+                readonly stopLoss: { readonly column: 'stopLoss' };
+                readonly takeProfit: { readonly column: 'takeProfit' };
                 readonly status: { readonly column: 'status' };
                 readonly commission: { readonly column: 'commission' };
                 readonly createdAt: { readonly column: 'createdAt' };
@@ -1539,6 +1760,14 @@ type ContractBase = Omit<
               };
               readonly unrealizedPnl: {
                 readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly stopLoss: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
+              };
+              readonly takeProfit: {
+                readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
               };
               readonly status: {
@@ -1597,6 +1826,8 @@ type ContractBase = Omit<
                 readonly averageEntryPrice: { readonly column: 'averageEntryPrice' };
                 readonly currentPrice: { readonly column: 'currentPrice' };
                 readonly unrealizedPnl: { readonly column: 'unrealizedPnl' };
+                readonly stopLoss: { readonly column: 'stopLoss' };
+                readonly takeProfit: { readonly column: 'takeProfit' };
                 readonly status: { readonly column: 'status' };
                 readonly openedAt: { readonly column: 'openedAt' };
                 readonly closedAt: { readonly column: 'closedAt' };
@@ -1812,7 +2043,11 @@ type ContractBase = Omit<
           };
           readonly OrderType: {
             readonly codecId: 'pg/text@1';
-            readonly members: readonly [{ readonly name: 'MARKET'; readonly value: 'MARKET' }];
+            readonly members: readonly [
+              { readonly name: 'MARKET'; readonly value: 'MARKET' },
+              { readonly name: 'BUY_LIMIT'; readonly value: 'BUY_LIMIT' },
+              { readonly name: 'SELL_LIMIT'; readonly value: 'SELL_LIMIT' },
+            ];
           };
           readonly OrderStatus: {
             readonly codecId: 'pg/text@1';
@@ -1835,6 +2070,14 @@ type ContractBase = Omit<
             readonly members: readonly [
               { readonly name: 'OPEN'; readonly value: 'OPEN' },
               { readonly name: 'CLOSED'; readonly value: 'CLOSED' },
+            ];
+          };
+          readonly CommissionType: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'NONE'; readonly value: 'NONE' },
+              { readonly name: 'PER_LOT'; readonly value: 'PER_LOT' },
+              { readonly name: 'PERCENT'; readonly value: 'PERCENT' },
             ];
           };
         };

@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 
-import { getHealthStatus } from "./service";
+import { getHealthStatus } from "./service.js";
 
 export async function healthController(
   _req: Request,

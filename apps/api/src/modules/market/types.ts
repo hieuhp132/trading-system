@@ -6,3 +6,20 @@ export interface MarketPriceResponse {
   source: string;
   timestamp: string;
 }
+
+export type CandleInterval = "1m" | "5m" | "15m" | "1h";
+
+export interface MarketCandle {
+  time: number;
+  open: string;
+  high: string;
+  low: string;
+  close: string;
+}
+
+export interface MarketCandlesResponse {
+  symbol: string;
+  interval: CandleInterval;
+  source: string;
+  items: MarketCandle[];
+}
