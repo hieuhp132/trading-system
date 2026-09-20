@@ -1,0 +1,710 @@
+[
+  {
+    "id": "dropCheckConstraint.order.order_orderType_check_aa673cd1",
+    "label": "Drop check constraint \"order_orderType_check_aa673cd1\" on \"order\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "order_orderType_check_aa673cd1",
+        "table": "order"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"order_orderType_check_aa673cd1\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "order_orderType_check_aa673cd1",
+          "public",
+          "\"public\".\"order\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop check constraint \"order_orderType_check_aa673cd1\"",
+        "sql": "ALTER TABLE \"public\".\"order\" DROP CONSTRAINT \"order_orderType_check_aa673cd1\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"order_orderType_check_aa673cd1\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "order_orderType_check_aa673cd1",
+          "public",
+          "\"public\".\"order\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.demoAccount.commissionType",
+    "label": "Add column \"commissionType\" to \"demoAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "commissionType",
+        "table": "demoAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"commissionType\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "demoAccount",
+          "commissionType"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"commissionType\"",
+        "sql": "ALTER TABLE \"public\".\"demoAccount\" ADD COLUMN \"commissionType\" text DEFAULT 'NONE' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"commissionType\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "demoAccount",
+          "commissionType"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.demoAccount.commissionValue",
+    "label": "Add column \"commissionValue\" to \"demoAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "commissionValue",
+        "table": "demoAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"commissionValue\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "demoAccount",
+          "commissionValue"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"commissionValue\"",
+        "sql": "ALTER TABLE \"public\".\"demoAccount\" ADD COLUMN \"commissionValue\" numeric DEFAULT '0'::numeric NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"commissionValue\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "demoAccount",
+          "commissionValue"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.demoAccount.marginCallLevel",
+    "label": "Add column \"marginCallLevel\" to \"demoAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "marginCallLevel",
+        "table": "demoAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"marginCallLevel\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "demoAccount",
+          "marginCallLevel"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"marginCallLevel\"",
+        "sql": "ALTER TABLE \"public\".\"demoAccount\" ADD COLUMN \"marginCallLevel\" numeric DEFAULT '100'::numeric NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"marginCallLevel\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "demoAccount",
+          "marginCallLevel"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.demoAccount.markup",
+    "label": "Add column \"markup\" to \"demoAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "markup",
+        "table": "demoAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"markup\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "demoAccount",
+          "markup"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"markup\"",
+        "sql": "ALTER TABLE \"public\".\"demoAccount\" ADD COLUMN \"markup\" numeric DEFAULT '0'::numeric NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"markup\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "demoAccount",
+          "markup"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.demoAccount.maxLeverage",
+    "label": "Add column \"maxLeverage\" to \"demoAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "maxLeverage",
+        "table": "demoAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"maxLeverage\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "demoAccount",
+          "maxLeverage"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"maxLeverage\"",
+        "sql": "ALTER TABLE \"public\".\"demoAccount\" ADD COLUMN \"maxLeverage\" numeric DEFAULT '100'::numeric NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"maxLeverage\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "demoAccount",
+          "maxLeverage"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.demoAccount.minimumDeposit",
+    "label": "Add column \"minimumDeposit\" to \"demoAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "minimumDeposit",
+        "table": "demoAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"minimumDeposit\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "demoAccount",
+          "minimumDeposit"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"minimumDeposit\"",
+        "sql": "ALTER TABLE \"public\".\"demoAccount\" ADD COLUMN \"minimumDeposit\" numeric DEFAULT '100000'::numeric NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"minimumDeposit\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "demoAccount",
+          "minimumDeposit"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.demoAccount.minimumSpread",
+    "label": "Add column \"minimumSpread\" to \"demoAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "minimumSpread",
+        "table": "demoAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"minimumSpread\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "demoAccount",
+          "minimumSpread"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"minimumSpread\"",
+        "sql": "ALTER TABLE \"public\".\"demoAccount\" ADD COLUMN \"minimumSpread\" numeric DEFAULT '0'::numeric NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"minimumSpread\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "demoAccount",
+          "minimumSpread"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.demoAccount.stopOutLevel",
+    "label": "Add column \"stopOutLevel\" to \"demoAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "stopOutLevel",
+        "table": "demoAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"stopOutLevel\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "demoAccount",
+          "stopOutLevel"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"stopOutLevel\"",
+        "sql": "ALTER TABLE \"public\".\"demoAccount\" ADD COLUMN \"stopOutLevel\" numeric DEFAULT '50'::numeric NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"stopOutLevel\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "demoAccount",
+          "stopOutLevel"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.order.stopLoss",
+    "label": "Add column \"stopLoss\" to \"order\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "stopLoss",
+        "table": "order"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"stopLoss\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order",
+          "stopLoss"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"stopLoss\"",
+        "sql": "ALTER TABLE \"public\".\"order\" ADD COLUMN \"stopLoss\" numeric"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"stopLoss\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order",
+          "stopLoss"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.order.takeProfit",
+    "label": "Add column \"takeProfit\" to \"order\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "takeProfit",
+        "table": "order"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"takeProfit\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order",
+          "takeProfit"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"takeProfit\"",
+        "sql": "ALTER TABLE \"public\".\"order\" ADD COLUMN \"takeProfit\" numeric"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"takeProfit\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order",
+          "takeProfit"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.position.stopLoss",
+    "label": "Add column \"stopLoss\" to \"position\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "stopLoss",
+        "table": "position"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"stopLoss\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "position",
+          "stopLoss"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"stopLoss\"",
+        "sql": "ALTER TABLE \"public\".\"position\" ADD COLUMN \"stopLoss\" numeric"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"stopLoss\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "position",
+          "stopLoss"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.position.takeProfit",
+    "label": "Add column \"takeProfit\" to \"position\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "takeProfit",
+        "table": "position"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"takeProfit\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "position",
+          "takeProfit"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"takeProfit\"",
+        "sql": "ALTER TABLE \"public\".\"position\" ADD COLUMN \"takeProfit\" numeric"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"takeProfit\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "position",
+          "takeProfit"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.demoAccount.demoAccount_commissionType_check_4e288e9b",
+    "label": "Add check constraint \"demoAccount_commissionType_check_4e288e9b\" on \"demoAccount\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "demoAccount_commissionType_check_4e288e9b",
+        "table": "demoAccount"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"demoAccount_commissionType_check_4e288e9b\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "demoAccount_commissionType_check_4e288e9b",
+          "public",
+          "\"public\".\"demoAccount\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"demoAccount_commissionType_check_4e288e9b\"",
+        "sql": "ALTER TABLE \"public\".\"demoAccount\" ADD CONSTRAINT \"demoAccount_commissionType_check_4e288e9b\" CHECK (\"commissionType\" IN ('NONE', 'PER_LOT', 'PERCENT'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"demoAccount_commissionType_check_4e288e9b\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "demoAccount_commissionType_check_4e288e9b",
+          "public",
+          "\"public\".\"demoAccount\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.order.order_orderType_check_7da144c0",
+    "label": "Add check constraint \"order_orderType_check_7da144c0\" on \"order\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "order_orderType_check_7da144c0",
+        "table": "order"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"order_orderType_check_7da144c0\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "order_orderType_check_7da144c0",
+          "public",
+          "\"public\".\"order\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"order_orderType_check_7da144c0\"",
+        "sql": "ALTER TABLE \"public\".\"order\" ADD CONSTRAINT \"order_orderType_check_7da144c0\" CHECK (\"orderType\" IN ('MARKET', 'BUY_LIMIT', 'SELL_LIMIT'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"order_orderType_check_7da144c0\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "order_orderType_check_7da144c0",
+          "public",
+          "\"public\".\"order\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.order.order_accountId_status_idx_ed560107",
+    "label": "Create index \"order_accountId_status_idx_ed560107\" on \"order\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "order_accountId_status_idx_ed560107",
+        "table": "order"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"order_accountId_status_idx_ed560107\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"order_accountId_status_idx_ed560107\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"order_accountId_status_idx_ed560107\"",
+        "sql": "CREATE INDEX \"order_accountId_status_idx_ed560107\" ON \"public\".\"order\" (\"accountId\", \"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"order_accountId_status_idx_ed560107\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"order_accountId_status_idx_ed560107\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.trade.trade_accountId_closedAt_idx_b4773c82",
+    "label": "Create index \"trade_accountId_closedAt_idx_b4773c82\" on \"trade\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "trade_accountId_closedAt_idx_b4773c82",
+        "table": "trade"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"trade_accountId_closedAt_idx_b4773c82\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"trade_accountId_closedAt_idx_b4773c82\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"trade_accountId_closedAt_idx_b4773c82\"",
+        "sql": "CREATE INDEX \"trade_accountId_closedAt_idx_b4773c82\" ON \"public\".\"trade\" (\"accountId\", \"closedAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"trade_accountId_closedAt_idx_b4773c82\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"trade_accountId_closedAt_idx_b4773c82\""
+        ]
+      }
+    ]
+  }
+]
