@@ -1,5 +1,6 @@
 import { AppError } from "../../../common/errors/app-error.js";
 import { fetchJson } from "../../../common/utils/http.js";
+import { reserveTwelveDataCredits } from "../twelve-data-budget.js";
 
 import type {
   CandleInterval,
@@ -50,6 +51,12 @@ const INTERVAL_MAP: Record<CandleInterval, string> = {
 };
 
 export class TwelveDataProvider implements MarketDataProvider {
+  private cachedPrice: MarketPriceResponse | null = null;
+  private cacheExpiresAt = 0;
+  private pendingPriceRequest: Promise<MarketPriceResponse> | null = null;
+
+  private readonly priceCacheTtlMs = 60_000;
+
   private readonly apiKey: string;
   private readonly symbol: string;
 
@@ -68,7 +75,7 @@ export class TwelveDataProvider implements MarketDataProvider {
     this.symbol = process.env.TWELVE_DATA_SYMBOL ?? DEFAULT_SYMBOL;
   }
 
-  async getPrice(symbol: string): Promise<MarketPriceResponse> {
+  private validateSymbol(symbol: string): void {
     const normalizedSymbol = symbol.trim().toUpperCase();
 
     if (normalizedSymbol !== "XAUUSD") {
@@ -78,14 +85,76 @@ export class TwelveDataProvider implements MarketDataProvider {
         "UNSUPPORTED_SYMBOL",
       );
     }
+  }
 
+  async getPrice(symbol: string): Promise<MarketPriceResponse> {
+    this.validateSymbol(symbol);
+
+    if (
+      this.cachedPrice &&
+      Date.now() < this.cacheExpiresAt
+    ) {
+      return this.cachedPrice;
+    }
+
+    return this.requestPrice();
+  }
+
+  async getTradingPrice(symbol: string): Promise<MarketPriceResponse> {
+    this.validateSymbol(symbol);
+
+    if (this.cachedPrice) {
+      const timestamp = Date.parse(this.cachedPrice.timestamp);
+
+      if (
+        Number.isFinite(timestamp) &&
+        timestamp <= Date.now() + 1_000 &&
+        Date.now() - timestamp <= 5_000
+      ) {
+        return this.cachedPrice;
+      }
+    }
+
+    return this.requestPrice();
+  }
+
+  private async requestPrice(): Promise<MarketPriceResponse> {
+    if (this.pendingPriceRequest) {
+      return this.pendingPriceRequest;
+    }
+
+    const request = this.fetchFreshPrice();
+    this.pendingPriceRequest = request;
+
+    try {
+      const price = await request;
+
+      this.cachedPrice = price;
+      this.cacheExpiresAt = Date.now() + this.priceCacheTtlMs;
+
+      return price;
+    } finally {
+      if (this.pendingPriceRequest === request) {
+        this.pendingPriceRequest = null;
+      }
+    }
+  }
+
+  private async fetchFreshPrice(): Promise<MarketPriceResponse> {
     const url = new URL(`${TWELVE_DATA_BASE_URL}/price`);
 
     url.searchParams.set("symbol", this.symbol);
 
-    url.searchParams.set("apikey", this.apiKey);
+    await reserveTwelveDataCredits(1);
 
-    const response = await fetchJson<TwelveDataPriceResponse>(url.toString());
+    const response = await fetchJson<TwelveDataPriceResponse>(
+      url.toString(),
+      {
+        headers: {
+          Authorization: `apikey ${this.apiKey}`,
+        },
+      },
+    );
 
     if (!response.price || response.status === "error") {
       throw new AppError(
@@ -105,10 +174,7 @@ export class TwelveDataProvider implements MarketDataProvider {
       );
     }
 
-    /**
-     * Twelve Data /price trả về một giá cuối cùng.
-     * Spread hiện tại chỉ là spread mô phỏng cho MVP.
-     */
+    // BID/ASK mô phỏng từ giá tham chiếu Twelve Data.
     const spread = 0.2;
 
     const bid = last - spread / 2;
@@ -123,7 +189,6 @@ export class TwelveDataProvider implements MarketDataProvider {
       timestamp: new Date().toISOString(),
     };
   }
-
   async getCandles(
     symbol: string,
     interval: CandleInterval,
@@ -157,10 +222,15 @@ export class TwelveDataProvider implements MarketDataProvider {
 
     url.searchParams.set("outputsize", String(limit));
 
-    url.searchParams.set("apikey", this.apiKey);
+    await reserveTwelveDataCredits(1);
 
     const response = await fetchJson<TwelveDataTimeSeriesResponse>(
       url.toString(),
+      {
+        headers: {
+          Authorization: `apikey ${this.apiKey}`,
+        },
+      },
     );
 
     if (response.status === "error" || !response.values) {

@@ -7,6 +7,7 @@ import type {
 import { DemoMarketDataProvider } from "./providers/demo-market-data-provider.js";
 import { TwelveDataProvider } from "./providers/twelve-data-provider.js";
 import type { MarketDataProvider } from "./providers/market-data-provider.js";
+import { validateTradingQuote } from "./trading-quote.js";
 
 function createMarketDataProvider(): MarketDataProvider {
   const provider =
@@ -33,6 +34,19 @@ export async function getMarketPrice(
   symbol: string,
 ): Promise<MarketPriceResponse> {
   return provider.getPrice(symbol);
+}
+
+export async function getTradingQuote(
+  symbol: string,
+): Promise<MarketPriceResponse> {
+  const quote =
+    provider instanceof TwelveDataProvider
+      ? await provider.getTradingPrice(symbol)
+      : await getMarketPrice(symbol);
+
+  validateTradingQuote(quote);
+
+  return quote;
 }
 
 export async function getMarketCandles(
