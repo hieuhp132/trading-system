@@ -6,6 +6,7 @@ import type {
   MarketCandle,
   MarketPriceResponse,
 } from "../types.js";
+import { readFile } from "node:fs/promises";
 
 const DEMO_PRICES: Record<
   string,
@@ -21,7 +22,73 @@ const DEMO_PRICES: Record<
     last: "3651.30",
   },
 };
+async function getSmokeTestPrice(
+  symbol: string,
+): Promise<{ bid: string; ask: string; last: string } | null> {
+  const filePath = process.env.DEMO_PRICE_FILE;
 
+  if (!filePath) {
+    return null;
+  }
+
+  // The override must never be active outside the test environment.
+  if (
+    process.env.NODE_ENV !== "test" ||
+    process.env.MARKET_DATA_PROVIDER?.trim().toLowerCase() !== "demo"
+  ) {
+    throw new Error(
+      "DEMO_PRICE_FILE requires NODE_ENV=test and MARKET_DATA_PROVIDER=demo",
+    );
+  }
+
+  const content = await readFile(filePath, "utf8");
+  const data: unknown = JSON.parse(content);
+
+  if (typeof data !== "object" || data === null) {
+    throw new Error("Invalid demo price file");
+  }
+
+  const record = data as Record<string, unknown>;
+  const price = record[symbol];
+
+  if (typeof price !== "object" || price === null) {
+    throw new Error(`Demo price not found for ${symbol}`);
+  }
+
+  const values = price as Record<string, unknown>;
+
+  if (
+    typeof values.bid !== "string" ||
+    typeof values.ask !== "string" ||
+    typeof values.last !== "string"
+  ) {
+    throw new Error("Demo prices must be strings");
+  }
+
+  const bid = Number(values.bid);
+  const ask = Number(values.ask);
+  const last = Number(values.last);
+
+  if (
+    ![bid, ask, last].every(Number.isFinite) ||
+    bid <= 0 ||
+    ask <= 0 ||
+    bid > ask ||
+    last < bid ||
+    last > ask ||
+    ![values.bid, values.ask, values.last].every((value) =>
+      /^\d+\.\d{2}$/.test(value as string),
+    )
+  ) {
+    throw new Error("Invalid demo BID/ASK/LAST");
+  }
+
+  return {
+    bid: values.bid,
+    ask: values.ask,
+    last: values.last,
+  };
+}
 const INTERVAL_SECONDS: Record<CandleInterval, number> = {
   "1m": 60,
   "5m": 300,
@@ -61,11 +128,14 @@ export class DemoMarketDataProvider implements MarketDataProvider {
       );
     }
 
+    const smokeTestPrice = await getSmokeTestPrice(normalizedSymbol);
+    const currentPrice = smokeTestPrice ?? price;
+
     return {
       symbol: normalizedSymbol,
-      bid: price.bid,
-      ask: price.ask,
-      last: price.last,
+      bid: currentPrice.bid,
+      ask: currentPrice.ask,
+      last: currentPrice.last,
       source: "demo",
       timestamp: new Date().toISOString(),
     };
@@ -96,18 +166,20 @@ export class DemoMarketDataProvider implements MarketDataProvider {
        * Dữ liệu không random hoàn toàn để mỗi lần polling
        * không làm chart nhảy thành một bộ dữ liệu khác.
        */
-      const wave1 = Math.sin(index * 0.35) * 2.8;
-      const wave2 = Math.sin(index * 0.11) * 1.5;
+      const bucket = Math.floor(time / intervalSeconds);
+
+      const wave1 = Math.sin(bucket * 0.35) * 2.8;
+      const wave2 = Math.sin(bucket * 0.11) * 1.5;
 
       const open = basePrice + wave1 + wave2;
 
-      const close = open + Math.sin(index * 0.73) * 1.2;
+      const close = open + Math.sin(bucket * 0.73) * 1.2;
 
       const high =
-        Math.max(open, close) + 0.4 + Math.abs(Math.sin(index * 0.41)) * 1.2;
+        Math.max(open, close) + 0.4 + Math.abs(Math.sin(bucket * 0.41)) * 1.2;
 
       const low =
-        Math.min(open, close) - 0.4 - Math.abs(Math.cos(index * 0.37)) * 1.1;
+        Math.min(open, close) - 0.4 - Math.abs(Math.cos(bucket * 0.37)) * 1.1;
 
       candles.push({
         time,
@@ -116,26 +188,6 @@ export class DemoMarketDataProvider implements MarketDataProvider {
         low: roundPrice(low),
         close: roundPrice(close),
       });
-    }
-
-    /*
-     * Candle cuối cùng bám theo giá demo hiện tại.
-     * Điều này giúp chart kết nối hợp lý với quote.
-     */
-    const currentPrice = basePrice;
-
-    const lastCandle = candles[candles.length - 1];
-
-    if (lastCandle) {
-      const open = Number(lastCandle.open);
-
-      lastCandle.close = roundPrice(currentPrice);
-      lastCandle.high = roundPrice(
-        Math.max(Number(lastCandle.high), open, currentPrice),
-      );
-      lastCandle.low = roundPrice(
-        Math.min(Number(lastCandle.low), open, currentPrice),
-      );
     }
 
     return {

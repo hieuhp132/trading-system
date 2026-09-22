@@ -17,9 +17,16 @@ export interface MarketCandle {
   close: string;
 }
 
+export interface MarketCandlesMetadata {
+  receivedAt: string;
+  sourceTimestamp: string | null;
+  latestCandleTime: number | null;
+}
+
 export interface MarketCandlesResponse {
   symbol: string;
   interval: CandleInterval;
   source: string;
   items: MarketCandle[];
+  metadata?: MarketCandlesMetadata;
 }

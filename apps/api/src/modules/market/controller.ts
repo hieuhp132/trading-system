@@ -17,7 +17,15 @@ export async function getPrice(req: Request, res: Response): Promise<void> {
 
   res.status(200).json({
     success: true,
-    data: price,
+    data: {
+      ...price,
+      metadata: {
+        receivedAt: price.timestamp,
+        sourceTimestamp: null,
+        bidAskType: "SYNTHETIC",
+        executable: price.source === "demo",
+      },
+    },
   });
 }
 
@@ -63,8 +71,22 @@ export async function getCandles(req: Request, res: Response): Promise<void> {
     parsedLimit,
   );
 
+  const receivedAt = new Date().toISOString();
+
+  const latestCandleTime =
+    candles.items.length > 0
+      ? Math.max(...candles.items.map((candle) => candle.time))
+      : null;
+
   res.status(200).json({
     success: true,
-    data: candles,
+    data: {
+      ...candles,
+      metadata: {
+        receivedAt,
+        sourceTimestamp: null,
+        latestCandleTime,
+      },
+    },
   });
 }

@@ -1,6 +1,7 @@
 import { AppError } from "../../../common/errors/app-error.js";
 import { fetchJson } from "../../../common/utils/http.js";
 import { reserveTwelveDataCredits } from "../twelve-data-budget.js";
+import { parseUtcDatetime } from "../parse-utc-datetime.js";
 
 import type {
   CandleInterval,
@@ -90,10 +91,7 @@ export class TwelveDataProvider implements MarketDataProvider {
   async getPrice(symbol: string): Promise<MarketPriceResponse> {
     this.validateSymbol(symbol);
 
-    if (
-      this.cachedPrice &&
-      Date.now() < this.cacheExpiresAt
-    ) {
+    if (this.cachedPrice && Date.now() < this.cacheExpiresAt) {
       return this.cachedPrice;
     }
 
@@ -147,14 +145,11 @@ export class TwelveDataProvider implements MarketDataProvider {
 
     await reserveTwelveDataCredits(1);
 
-    const response = await fetchJson<TwelveDataPriceResponse>(
-      url.toString(),
-      {
-        headers: {
-          Authorization: `apikey ${this.apiKey}`,
-        },
+    const response = await fetchJson<TwelveDataPriceResponse>(url.toString(), {
+      headers: {
+        Authorization: `apikey ${this.apiKey}`,
       },
-    );
+    });
 
     if (!response.price || response.status === "error") {
       throw new AppError(
@@ -221,6 +216,7 @@ export class TwelveDataProvider implements MarketDataProvider {
     url.searchParams.set("interval", twelveDataInterval);
 
     url.searchParams.set("outputsize", String(limit));
+    url.searchParams.set("timezone", "UTC");
 
     await reserveTwelveDataCredits(1);
 
@@ -253,7 +249,11 @@ export class TwelveDataProvider implements MarketDataProvider {
           return null;
         }
 
-        const time = Date.parse(`${item.datetime}Z`) / 1000;
+        const time = parseUtcDatetime(item.datetime);
+
+        if (time === null) {
+          return null;
+        }
 
         const open = Number(item.open);
         const high = Number(item.high);

@@ -8,6 +8,12 @@ export interface MarketPrice {
   last: string;
   source: "demo" | "twelve-data";
   timestamp: string;
+  metadata: {
+    receivedAt: string;
+    sourceTimestamp: string | null;
+    bidAskType: "REAL" | "SYNTHETIC";
+    executable: boolean;
+  };
 }
 
 export type CandleInterval = "1m" | "5m" | "15m" | "1h";
@@ -20,11 +26,18 @@ export interface MarketCandle {
   close: string;
 }
 
+export interface MarketCandlesMetadata {
+  receivedAt: string;
+  sourceTimestamp: string | null;
+  latestCandleTime: number | null;
+}
+
 export interface MarketCandles {
   symbol: string;
   interval: CandleInterval;
   source: "demo" | "twelve-data";
   items: MarketCandle[];
+  metadata?: MarketCandlesMetadata;
 }
 
 export async function getMarketPrice(symbol = "XAUUSD"): Promise<MarketPrice> {

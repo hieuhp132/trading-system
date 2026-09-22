@@ -1,26 +1,42 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   CandlestickSeries,
   ColorType,
   createChart,
   type IChartApi,
   type ISeriesApi,
-  type CandlestickData,
-  type Time,
+
 } from "lightweight-charts";
 
 import { useMarketCandles } from "../hooks/useMarketCandles";
+import { getCandleDisplayState } from "../candleDisplayState";
+import { getCandleFreshness } from "../candleFreshness";
+import { syncCandlesToChart } from "../syncCandlesToChart";
 
 interface XAUUSDChartProps {
   interval?: "1m" | "5m" | "15m" | "1h";
 }
 
 export function XAUUSDChart({ interval = "1m" }: XAUUSDChartProps) {
+  const [nowMs, setNowMs] = useState(() => Date.now());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setNowMs(Date.now());
+    }, 1000);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, []);
+
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const chartRef = useRef<IChartApi | null>(null);
 
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
+
+  const fittedIntervalRef = useRef<string | null>(null);
 
   const candlesQuery = useMarketCandles({
     symbol: "XAUUSD",
@@ -113,27 +129,80 @@ export function XAUUSDChart({ interval = "1m" }: XAUUSDChartProps) {
     };
   }, []);
 
+  const source = candlesQuery.data?.source;
+
+  const displayState = getCandleDisplayState({
+    data: candlesQuery.data,
+    isLoading: candlesQuery.isLoading,
+    isError: candlesQuery.isError,
+  });
   useEffect(() => {
     const series = seriesRef.current;
 
-    const items = candlesQuery.data?.items;
-
-    if (!series || !items) {
+    if (!series) {
       return;
     }
 
-    const data: CandlestickData<Time>[] = items.map((candle) => ({
-      time: candle.time as Time,
-      open: Number(candle.open),
-      high: Number(candle.high),
-      low: Number(candle.low),
-      close: Number(candle.close),
-    }));
+    const result = syncCandlesToChart({
+      series,
+      chart: chartRef.current,
+      data: candlesQuery.data,
+      interval,
+      shouldClearChart: displayState.shouldClearChart,
+      fittedInterval: fittedIntervalRef.current,
+    });
 
-    series.setData(data);
+    fittedIntervalRef.current = result.fittedInterval;
+  }, [
+    candlesQuery.data,
+    displayState.shouldClearChart,
+    interval,
+  ]);
 
-    chartRef.current?.timeScale().fitContent();
-  }, [candlesQuery.data]);
+
+
+  const metadata = candlesQuery.data?.metadata;
+
+  const freshness = getCandleFreshness({
+    interval,
+    latestCandleTime: metadata?.latestCandleTime,
+    sourceTimestamp: metadata?.sourceTimestamp,
+    nowMs,
+  });
+
+  const bucketLabel = {
+    CURRENT_BUCKET: "Nến thuộc khung thời gian hiện tại",
+    DELAYED_BUCKET: "Nến mới nhất thuộc khung thời gian trước",
+    FUTURE_BUCKET: "Timestamp nến nằm trong tương lai",
+    UNKNOWN: "Chưa xác định",
+  }[freshness.status];
+
+  const formatTimestamp = (value: string | number | null | undefined) => {
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    const date = new Date(value);
+
+    return Number.isFinite(date.getTime())
+      ? date.toLocaleString("vi-VN")
+      : null;
+  };
+
+  const backendReceivedAt = formatTimestamp(metadata?.receivedAt);
+
+  const frontendUpdatedAt =
+    candlesQuery.dataUpdatedAt > 0
+      ? formatTimestamp(candlesQuery.dataUpdatedAt)
+      : null;
+
+  const latestCandleAt =
+    metadata?.latestCandleTime !== null &&
+    metadata?.latestCandleTime !== undefined
+      ? formatTimestamp(metadata.latestCandleTime * 1000)
+      : null;
+
+  const sourceTimestamp = formatTimestamp(metadata?.sourceTimestamp);
 
   return (
     <section className="dashboard-panel market-chart-panel">
@@ -148,16 +217,68 @@ export function XAUUSDChart({ interval = "1m" }: XAUUSDChartProps) {
           </div>
 
           <p>Candlestick · {interval}</p>
+
+          <p role="status">
+            Nguồn dữ liệu:{" "}
+            {source === "demo"
+              ? "DEMO — dữ liệu mô phỏng"
+              : source === "twelve-data"
+                ? "TWELVE DATA — dữ liệu tham khảo"
+                : "Chưa xác định"}
+          </p>
+
+          <p>
+            Backend nhận dữ liệu:{" "}
+            {backendReceivedAt ?? "Chưa có metadata từ API"}
+          </p>
+
+          <p>
+            Frontend cập nhật cache:{" "}
+            {frontendUpdatedAt ?? "Chưa có dữ liệu"}
+            {" "}(theo đồng hồ thiết bị)
+          </p>
+
+          <p>
+            Nến mới nhất bắt đầu:{" "}
+            {latestCandleAt ?? "Chưa xác định"}
+          </p>
+
+          <p>
+            Timestamp nguồn:{" "}
+            {sourceTimestamp ?? "Chưa xác minh"}
+          </p>
+
+          <p role="status">
+            Trạng thái khung nến: {bucketLabel}
+          </p>
+
+          <p>
+            Độ mới dữ liệu thị trường: Chưa xác minh
+          </p>
+
+          {candlesQuery.isFetching && candlesQuery.data && (
+            <p>Đang kiểm tra dữ liệu mới...</p>
+          )}
         </div>
       </div>
+
+      {displayState.status === "empty" && (
+        <div className="trading-order-panel__error" role="alert">
+          API không trả về nến hợp lệ. Không thể hiển thị dữ liệu biểu đồ.
+        </div>
+      )}
 
       {candlesQuery.isLoading && (
         <div className="market-chart-placeholder">Đang tải chart...</div>
       )}
 
-      {candlesQuery.isError && (
-        <div className="trading-order-panel__error">
-          Không thể tải dữ liệu chart.
+      {(displayState.status === "error" ||
+        displayState.status === "stale") && (
+        <div className="trading-order-panel__error" role="alert">
+          Không thể cập nhật dữ liệu biểu đồ.
+          {displayState.shouldShowStaleWarning
+            ? " Dữ liệu đang hiển thị có thể đã cũ."
+            : " Chưa có dữ liệu hợp lệ để hiển thị."}
         </div>
       )}
 
