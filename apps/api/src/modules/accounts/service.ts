@@ -13,6 +13,7 @@ import type {
   CommissionType,
 } from "./types.js";
 
+import { calculateUsedMargin } from "../../common/utils/margin.js";
 const DEMO_ACCOUNT_INITIAL_BALANCE = "100000";
 const DEMO_ACCOUNT_CURRENCY = "USD";
 
@@ -95,43 +96,6 @@ function toAccountResponse(account: {
   };
 }
 
-function calculateUsedMargin(
-  positions: Array<{
-    quantity: unknown;
-    averageEntryPrice: unknown;
-  }>,
-  leverage: number,
-): number {
-  if (!Number.isFinite(leverage) || leverage <= 0) {
-    throw new AppError(
-      "Leverage của tài khoản không hợp lệ",
-      500,
-      "INVALID_ACCOUNT_LEVERAGE",
-    );
-  }
-
-  return positions.reduce((total, position) => {
-    const volume = Number(position.quantity);
-    const entryPrice = Number(position.averageEntryPrice);
-
-    if (
-      !Number.isFinite(volume) ||
-      volume <= 0 ||
-      !Number.isFinite(entryPrice) ||
-      entryPrice <= 0
-    ) {
-      throw new AppError(
-        "Dữ liệu position không hợp lệ",
-        500,
-        "INVALID_POSITION_MARGIN_DATA",
-      );
-    }
-
-    const margin = (volume * XAUUSD_SPEC.contractSize * entryPrice) / leverage;
-
-    return total + margin;
-  }, 0);
-}
 
 export async function createDemoAccount(
   userId: string,
@@ -274,7 +238,41 @@ export async function getMyAccountBalance(
 
   const leverage = Number(account.maxLeverage);
 
-  const usedMargin = calculateUsedMargin(positions, leverage);
+  if (!Number.isFinite(leverage) || leverage <= 0) {
+    throw new AppError(
+      "Leverage của tài khoản không hợp lệ",
+      500,
+      "INVALID_ACCOUNT_LEVERAGE",
+    );
+  }
+
+  const marginPositions = positions.map((position) => {
+    const quantity = Number(position.quantity);
+    const entryPrice = Number(position.averageEntryPrice);
+
+    if (
+      !Number.isFinite(quantity) ||
+      quantity <= 0 ||
+      !Number.isFinite(entryPrice) ||
+      entryPrice <= 0
+    ) {
+      throw new AppError(
+        "Dữ liệu position không hợp lệ",
+        500,
+        "INVALID_POSITION_MARGIN_DATA",
+      );
+    }
+
+    return {
+      quantity,
+      entryPrice,
+    };
+  });
+
+  const usedMargin = calculateUsedMargin(
+    marginPositions,
+    leverage,
+  );
 
   const equity = balance + unrealizedPnl;
   const freeMargin = equity - usedMargin;

@@ -5,6 +5,7 @@ import app from "./app.js";
 import { db } from "./database/prisma.js";
 import { createStopWorker } from "./modules/orders/stop-worker.js";
 import { createLimitWorker } from "./modules/orders/limit-worker.js";
+import { createStopOutWorker } from "./modules/orders/stop-out-worker.js";
 
 function readPositiveInteger(name: string, fallback: number): number {
   const raw = process.env[name];
@@ -51,6 +52,17 @@ const limitWorker = isEnabled("LIMIT_WORKER_ENABLED")
   : null;
 
 // --------------------------------------------------
+// Stop-Out Worker
+// --------------------------------------------------
+
+const stopOutWorker = isEnabled("STOP_OUT_WORKER_ENABLED")
+  ? createStopOutWorker(undefined, {
+      intervalMs: readPositiveInteger("STOP_OUT_WORKER_INTERVAL_MS", 1000),
+      maxQuoteAgeMs: readPositiveInteger("STOP_OUT_WORKER_MAX_QUOTE_AGE_MS", 5000),
+    })
+  : null;
+
+// --------------------------------------------------
 // HTTP Server
 // --------------------------------------------------
 
@@ -73,6 +85,14 @@ const server = app.listen(port, () => {
     console.log("Limit worker started");
   } else {
     console.log("Limit worker disabled");
+  }
+
+  if (stopOutWorker && !shuttingDown) {
+    stopOutWorker.start();
+
+    console.log("Stop-Out worker started");
+  } else {
+    console.log("Stop-Out worker disabled");
   }
 });
 
@@ -117,11 +137,12 @@ async function shutdown(signal: string): Promise<void> {
     });
   });
 
-  // Wait until HTTP and both workers have stopped
+  // Wait until HTTP and all workers have stopped
   // before closing the shared database connection.
   const results = await Promise.allSettled([
     stopWorker?.stop() ?? Promise.resolve(),
     limitWorker?.stop() ?? Promise.resolve(),
+    stopOutWorker?.stop() ?? Promise.resolve(),
     httpClosed,
   ]);
 

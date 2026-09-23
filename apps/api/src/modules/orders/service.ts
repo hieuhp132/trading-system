@@ -14,6 +14,8 @@ import type {
   OrderType,
 } from "./types.js";
 import { calculateUnrealizedPnl, roundMoney } from "../../common/utils/pnl.js";
+import { calculateRequiredMargin } from "../../common/utils/margin.js";
+import { calculateAccountMarginRisk } from "./margin-risk.js";
 import { assertTradingExecutionAllowed, getMarketPrice, getTradingQuote } from "../market/service.js";
 import { XAUUSD_SPEC } from "../../common/constants/xauusd.js";
 import type { UpdatePositionStopsInput } from "./schema.js";
@@ -80,34 +82,6 @@ function validateOrderVolume(quantity: number): void {
   }
 }
 
-function calculateRequiredMargin(
-  quantity: number,
-  price: number,
-  leverage: number,
-): number {
-  if (!Number.isFinite(leverage) || leverage <= 0) {
-    throw new AppError(
-      "Leverage của tài khoản không hợp lệ",
-      500,
-      "INVALID_ACCOUNT_LEVERAGE",
-    );
-  }
-
-  if (
-    !Number.isFinite(quantity) ||
-    quantity <= 0 ||
-    !Number.isFinite(price) ||
-    price <= 0
-  ) {
-    throw new AppError(
-      "Dữ liệu tính margin không hợp lệ",
-      500,
-      "INVALID_MARGIN_DATA",
-    );
-  }
-
-  return (quantity * XAUUSD_SPEC.contractSize * price) / leverage;
-}
 
 /*
  * Market price của MVP XAUUSD sử dụng 2 decimal places.
@@ -326,6 +300,14 @@ export async function createMarketOrder(
 
     const leverage = Number(account.maxLeverage);
     const balance = Number(account.balance);
+
+    if (!Number.isFinite(leverage) || leverage <= 0) {
+      throw new AppError(
+        "Leverage của tài khoản không hợp lệ",
+        500,
+        "INVALID_ACCOUNT_LEVERAGE",
+      );
+    }
 
     if (!Number.isFinite(balance)) {
       throw new AppError(
@@ -1136,7 +1118,10 @@ export async function getMyPortfolioSummary(
   };
 }
 
+type AutomaticCloseMode = "STOP_LEVEL" | "STOP_OUT";
+
 interface AutomaticCloseOptions {
+  mode: AutomaticCloseMode;
   quote: MarketPriceResponse;
 }
 
@@ -1277,7 +1262,7 @@ async function closePositionInternal(
       );
     }
 
-    if (automatic) {
+    if (automatic?.mode === "STOP_LEVEL") {
       const trigger = evaluateStopTrigger(
         {
           side: position.side,
@@ -1296,6 +1281,34 @@ async function closePositionInternal(
       }
     }
 
+    if (automatic?.mode === "STOP_OUT") {
+      const openPositionsForRisk = await tx.orm.public.Position.where({
+        accountId: account.id,
+        status: "OPEN",
+      }).all();
+
+      const risk = calculateAccountMarginRisk(
+        Number(account.balance),
+        Number(account.maxLeverage),
+        Number(account.marginCallLevel),
+        Number(account.stopOutLevel),
+        openPositionsForRisk.map((openPosition) => ({
+          side: openPosition.side,
+          quantity: Number(openPosition.quantity),
+          entryPrice: Number(openPosition.averageEntryPrice),
+        })),
+        {
+          bid: Number(marketPrice.bid),
+          ask: Number(marketPrice.ask),
+        },
+      );
+
+      // Account đã phục hồi trong lúc chờ account lock.
+      // Không được forced-close nếu không còn STOP_OUT.
+      if (risk.state !== "STOP_OUT") {
+        return null;
+      }
+    }
     const quantity = toNumber(position.quantity);
     const entryPrice = toNumber(position.averageEntryPrice);
 
@@ -1564,7 +1577,26 @@ export async function executeTriggeredStop(
   positionId: string,
   quote: MarketPriceResponse,
 ) {
-  return closePositionInternal(userId, positionId, undefined, { quote });
+  return closePositionInternal(userId, positionId, undefined, {
+    mode: "STOP_LEVEL",
+    quote,
+  });
+}
+
+/**
+ * Automatic Stop Out:
+ * null = account không còn ở STOP_OUT sau khi lấy account lock.
+ * Thành công = forced-close toàn bộ Position được chọn.
+ */
+export async function executeStopOutPosition(
+  userId: string,
+  positionId: string,
+  quote: MarketPriceResponse,
+) {
+  return closePositionInternal(userId, positionId, undefined, {
+    mode: "STOP_OUT",
+    quote,
+  });
 }
 
 export async function updatePositionStops(
@@ -2046,6 +2078,14 @@ export async function executePendingLimitOrder(
 
     const leverage = Number(account.maxLeverage);
     const balance = Number(account.balance);
+
+    if (!Number.isFinite(leverage) || leverage <= 0) {
+      throw new AppError(
+        "Leverage của tài khoản không hợp lệ",
+        500,
+        "INVALID_ACCOUNT_LEVERAGE",
+      );
+    }
 
     if (!Number.isFinite(balance)) {
       throw new AppError(
