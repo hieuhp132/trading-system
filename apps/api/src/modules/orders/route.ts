@@ -12,6 +12,7 @@ import {
   getPortfolioSummary,
   closePositionController,
   updatePositionStopsController,
+  cancelOrderController,
 } from "./controller.js";
 
 const router = Router();
@@ -24,6 +25,7 @@ router.get("/positions", asyncHandler(getPositions));
 router.get("/positions/:id", asyncHandler(getPosition));
 router.get("/trades", asyncHandler(getTrades));
 router.get("/:id", asyncHandler(getOrder));
+router.post("/:id/cancel", asyncHandler(cancelOrderController));
 router.post("/", asyncHandler(createOrder));
 router.post(
   "/positions/:positionId/close",

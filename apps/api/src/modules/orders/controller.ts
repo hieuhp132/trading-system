@@ -16,6 +16,8 @@ import {
   getMyPortfolioSummary,
   closePosition,
   updatePositionStops,
+  createPendingLimitOrder,
+  cancelPendingLimitOrder,
 } from "./service.js";
 
 function getParam(req: Request, name: string): string {
@@ -31,7 +33,10 @@ function getParam(req: Request, name: string): string {
 export async function createOrder(req: Request, res: Response): Promise<void> {
   const input = createOrderSchema.parse(req.body);
 
-  const result = await createMarketOrder(res.locals.auth.sub, input);
+  const result =
+    input.orderType === "MARKET"
+      ? await createMarketOrder(res.locals.auth.sub, input)
+      : await createPendingLimitOrder(res.locals.auth.sub, input);
 
   res.status(201).json({
     success: true,
@@ -123,6 +128,21 @@ export async function updatePositionStopsController(
     res.locals.auth.sub,
     getParam(req, "positionId"),
     input,
+  );
+
+  res.status(200).json({
+    success: true,
+    data: result,
+  });
+}
+
+export async function cancelOrderController(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  const result = await cancelPendingLimitOrder(
+    res.locals.auth.sub,
+    getParam(req, "id"),
   );
 
   res.status(200).json({

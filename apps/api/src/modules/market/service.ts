@@ -8,6 +8,7 @@ import { DemoMarketDataProvider } from "./providers/demo-market-data-provider.js
 import { TwelveDataProvider } from "./providers/twelve-data-provider.js";
 import type { MarketDataProvider } from "./providers/market-data-provider.js";
 import { validateTradingQuote } from "./trading-quote.js";
+import { AppError } from "../../common/errors/app-error.js";
 
 function createMarketDataProvider(): MarketDataProvider {
   const provider =
@@ -30,6 +31,20 @@ function createMarketDataProvider(): MarketDataProvider {
 
 const provider = createMarketDataProvider();
 
+/**
+ * Fail closed until the active provider supplies a verifiable source quote.
+ * Must run before database writes or external price requests.
+ */
+export function assertTradingExecutionAllowed(): void {
+  if (provider instanceof TwelveDataProvider) {
+    throw new AppError(
+      "Không thể xác minh thời điểm cập nhật giá Twelve Data tại nguồn",
+      503,
+      "TRADING_QUOTE_UNVERIFIED",
+    );
+  }
+}
+
 export async function getMarketPrice(
   symbol: string,
 ): Promise<MarketPriceResponse> {
@@ -39,10 +54,9 @@ export async function getMarketPrice(
 export async function getTradingQuote(
   symbol: string,
 ): Promise<MarketPriceResponse> {
-  const quote =
-    provider instanceof TwelveDataProvider
-      ? await provider.getTradingPrice(symbol)
-      : await getMarketPrice(symbol);
+  assertTradingExecutionAllowed();
+
+  const quote = await getMarketPrice(symbol);
 
   validateTradingQuote(quote);
 

@@ -2,15 +2,18 @@ import { api } from "../../lib/api";
 
 export type OrderSide = "BUY" | "SELL";
 
-export type OrderType = "MARKET";
+export type OrderType = "MARKET" | "BUY_LIMIT" | "SELL_LIMIT";
 
 export type OrderStatus = "PENDING" | "FILLED" | "REJECTED" | "CANCELLED";
 
 export interface CreateOrderInput {
   symbol: "XAUUSD";
   side: OrderSide;
-  type: OrderType;
+  orderType: OrderType;
   quantity: string;
+  price?: string;
+  stopLoss?: string;
+  takeProfit?: string;
 }
 
 export interface Order {
@@ -61,12 +64,19 @@ interface OrdersResponse {
   };
 }
 
-/**
- * Create MARKET order
- *
- * BUY  -> LONG
- * SELL -> SHORT
- */
+export interface CancelOrderResponse {
+  success: boolean;
+  data: Order;
+}
+
+export async function cancelOrder(orderId: string): Promise<Order> {
+  const response = await api.post<CancelOrderResponse>(
+    `/orders/${encodeURIComponent(orderId)}/cancel`,
+  );
+
+  return response.data.data;
+}
+
 export async function createOrder(
   input: CreateOrderInput,
 ): Promise<CreateOrderResponse["data"]> {
@@ -75,9 +85,6 @@ export async function createOrder(
   return response.data.data;
 }
 
-/**
- * Get order history
- */
 export async function getOrders(): Promise<Order[]> {
   const response = await api.get<OrdersResponse>("/orders");
 

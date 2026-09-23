@@ -1,6 +1,6 @@
 import { db } from "../../database/prisma.js";
 import { XAUUSD_SPEC } from "../../common/constants/xauusd.js";
-import { getMarketPrice } from "../market/service.js";
+import { getTradingQuote } from "../market/service.js";
 import type { MarketPriceResponse } from "../market/types.js";
 import { evaluateStopTrigger } from "./stop-trigger.js";
 import { executeTriggeredStop } from "./service.js";
@@ -34,7 +34,7 @@ export const defaultStopWorkerDependencies: StopWorkerDependencies = {
         takeProfit: position.takeProfit == null ? null : String(position.takeProfit),
       }));
   },
-  getQuote: () => getMarketPrice(XAUUSD_SPEC.symbol),
+  getQuote: () => getTradingQuote(XAUUSD_SPEC.symbol),
   async getUserId(accountId) {
     const account = await db.orm.public.DemoAccount.where({ id: accountId }).first();
     return account?.userId ?? null;

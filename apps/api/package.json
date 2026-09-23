@@ -13,7 +13,9 @@
     "prisma:migration:check": "prisma migration check",
     "prisma:db:migrate": "prisma db migrate",
     "prisma:db:verify": "prisma db verify",
-    "contract:emit": "prisma contract emit"
+    "contract:emit": "prisma contract emit",
+    "test:e2e": "powershell.exe -NoProfile -File ./src/run-regression-e2e.ps1",
+    "verify": "pnpm run typecheck && pnpm run build && pnpm run test:e2e"
   },
   "dependencies": {
     "@prisma/orm-postgres": "8.0.0-rc.11",

@@ -16,6 +16,9 @@ export interface AccountBalance {
   balance: string;
   equity: string;
   unrealizedPnl: string;
+  usedMargin: string;
+  freeMargin: string;
+  marginLevel: string | null;
   currency: string;
 }
 

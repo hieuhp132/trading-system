@@ -14,12 +14,13 @@ import type {
   OrderType,
 } from "./types.js";
 import { calculateUnrealizedPnl, roundMoney } from "../../common/utils/pnl.js";
-import { getMarketPrice } from "../market/service.js";
+import { assertTradingExecutionAllowed, getMarketPrice, getTradingQuote } from "../market/service.js";
 import { XAUUSD_SPEC } from "../../common/constants/xauusd.js";
 import type { UpdatePositionStopsInput } from "./schema.js";
 import { validateStopLevels } from "./stop-levels.js";
 import { evaluateStopTrigger } from "./stop-trigger.js";
 import type { MarketPriceResponse } from "../market/types.js";
+import { evaluateLimitTrigger } from "./limit-trigger.js";
 
 const ZERO = "0";
 
@@ -261,7 +262,7 @@ export async function createMarketOrder(
     throw new AppError("Quantity phải lớn hơn 0", 400, "INVALID_QUANTITY");
   }
 
-  const marketPrice = await getMarketPrice(input.symbol);
+  const marketPrice = await getTradingQuote(input.symbol);
 
   /*
    * BUY  -> khớp tại ASK
@@ -1139,9 +1140,10 @@ interface AutomaticCloseOptions {
   quote: MarketPriceResponse;
 }
 
-function validateAutomaticQuoteFreshness(quote: MarketPriceResponse): void {
-  const maxAgeMs = Number(process.env.STOP_WORKER_MAX_QUOTE_AGE_MS ?? 5000);
-
+function validateAutomaticQuoteFreshness(
+  quote: MarketPriceResponse,
+  maxAgeMs = Number(process.env.STOP_WORKER_MAX_QUOTE_AGE_MS ?? 5000),
+): void {
   if (!Number.isInteger(maxAgeMs) || maxAgeMs < 100) {
     throw new AppError(
       "Cấu hình thời hạn market quote không hợp lệ",
@@ -1172,8 +1174,20 @@ async function closePositionInternal(
   requestedQuantity?: string,
   automatic?: AutomaticCloseOptions,
 ) {
+  // The active provider, not a caller-supplied source label, controls execution.
+  assertTradingExecutionAllowed();
+
+  // Defense in depth: also reject explicitly unverified supplied quotes.
+  if (automatic?.quote.source === "twelve-data") {
+    throw new AppError(
+      "Không thể xác minh thời điểm cập nhật giá Twelve Data tại nguồn",
+      503,
+      "TRADING_QUOTE_UNVERIFIED",
+    );
+  }
+
   const marketPrice =
-    automatic?.quote ?? (await getMarketPrice(XAUUSD_SPEC.symbol));
+    automatic?.quote ?? (await getTradingQuote(XAUUSD_SPEC.symbol));
 
   if (automatic) {
     if (marketPrice.symbol !== XAUUSD_SPEC.symbol) {
@@ -1558,7 +1572,7 @@ export async function updatePositionStops(
   positionId: string,
   input: UpdatePositionStopsInput,
 ) {
-  const marketPrice = await getMarketPrice(XAUUSD_SPEC.symbol);
+  const marketPrice = await getTradingQuote(XAUUSD_SPEC.symbol);
 
   return db.transaction(async (tx) => {
     const accountRef = await tx.orm.public.DemoAccount.where({
@@ -1648,6 +1662,663 @@ export async function updatePositionStops(
       stopLoss: updated.stopLoss === null ? null : String(updated.stopLoss),
       takeProfit:
         updated.takeProfit === null ? null : String(updated.takeProfit),
+    };
+  });
+}
+
+export async function createPendingLimitOrder(
+  userId: string,
+  input: CreateOrderInput,
+): Promise<OrderExecutionResponse> {
+  if (input.orderType !== "BUY_LIMIT" && input.orderType !== "SELL_LIMIT") {
+    throw new AppError("Order type không hợp lệ", 400, "INVALID_ORDER_TYPE");
+  }
+
+  if (input.symbol !== XAUUSD_SPEC.symbol) {
+    throw new AppError(
+      "Chỉ hỗ trợ giao dịch XAUUSD",
+      400,
+      "UNSUPPORTED_SYMBOL",
+    );
+  }
+
+  const quantity = Number(input.quantity);
+  validateOrderVolume(quantity);
+
+  if (
+    !input.price ||
+    !/^\d+(\.\d{1,2})?$/.test(input.price) ||
+    !Number.isFinite(Number(input.price)) ||
+    Number(input.price) <= 0
+  ) {
+    throw new AppError(
+      "Limit price phải là số dương, tối đa 2 chữ số thập phân",
+      400,
+      "INVALID_LIMIT_PRICE",
+    );
+  }
+
+  const limitPrice = Number(input.price);
+
+  const quote = await getTradingQuote(input.symbol);
+  const bid = Number(quote.bid);
+  const ask = Number(quote.ask);
+
+  if (
+    !Number.isFinite(bid) ||
+    !Number.isFinite(ask) ||
+    bid <= 0 ||
+    ask <= 0 ||
+    bid > ask
+  ) {
+    throw new AppError("BID/ASK không hợp lệ", 502, "INVALID_MARKET_PRICE");
+  }
+
+  // Chính sách giai đoạn A:
+  // Chỉ nhận Limit Order chưa đủ điều kiện khớp ngay.
+  if (input.orderType === "BUY_LIMIT" && limitPrice >= ask) {
+    throw new AppError(
+      "BUY LIMIT phải thấp hơn giá ASK hiện tại",
+      400,
+      "INVALID_BUY_LIMIT_PRICE",
+    );
+  }
+
+  if (input.orderType === "SELL_LIMIT" && limitPrice <= bid) {
+    throw new AppError(
+      "SELL LIMIT phải cao hơn giá BID hiện tại",
+      400,
+      "INVALID_SELL_LIMIT_PRICE",
+    );
+  }
+
+  return db.transaction(async (tx) => {
+    const accountRef = await tx.orm.public.DemoAccount.where({
+      userId,
+    }).first();
+
+    if (!accountRef) {
+      throw new AppError(
+        "Không tìm thấy demo account",
+        404,
+        "DEMO_ACCOUNT_NOT_FOUND",
+      );
+    }
+
+    await lockDemoAccount(tx, accountRef.id);
+
+    const account = await tx.orm.public.DemoAccount.where({
+      id: accountRef.id,
+    }).first();
+
+    if (!account) {
+      throw new AppError(
+        "Không tìm thấy demo account",
+        404,
+        "DEMO_ACCOUNT_NOT_FOUND",
+      );
+    }
+
+    if (account.status !== "ACTIVE") {
+      throw new AppError(
+        "Tài khoản demo không hoạt động",
+        400,
+        "DEMO_ACCOUNT_NOT_ACTIVE",
+      );
+    }
+
+    const balance = Number(account.balance);
+    const equity = Number(account.equity);
+
+    if (!Number.isFinite(balance) || !Number.isFinite(equity)) {
+      throw new AppError(
+        "Thông tin tài khoản không hợp lệ",
+        500,
+        "INVALID_ACCOUNT_BALANCE",
+      );
+    }
+
+    const now = new Date().toISOString();
+
+    const order = await tx.orm.public.Order.create({
+      accountId: account.id,
+      symbol: input.symbol,
+      side: input.side,
+      orderType: input.orderType,
+      quantity: input.quantity,
+      requestedPrice: formatPrice(limitPrice),
+      executedPrice: null,
+      stopLoss: input.stopLoss ?? null,
+      takeProfit: input.takeProfit ?? null,
+      status: "PENDING",
+      commission: ZERO,
+      createdAt: now,
+      executedAt: null,
+    });
+
+    return {
+      order: toOrderResponse(order),
+
+      account: {
+        accountId: account.id,
+        accountNumber: account.accountNumber,
+        balance: formatDecimal(balance),
+        equity: formatDecimal(equity),
+        unrealizedPnl: formatDecimal(equity - balance),
+      },
+
+      position: null,
+
+      realizedPnl: ZERO,
+    };
+  });
+}
+
+/**
+ * Execute an existing pending Limit Order.
+ *
+ * Returns null when:
+ * - order is no longer PENDING; or
+ * - the supplied quote no longer satisfies the limit.
+ *
+ * A failed validation rolls back the transaction.
+ * The order remains PENDING if margin or stops are invalid.
+ */
+export async function cancelPendingLimitOrder(
+  userId: string,
+  orderId: string,
+): Promise<CreateOrderResponse> {
+  return db.transaction(async (tx) => {
+    const accountRef = await tx.orm.public.DemoAccount.where({
+      userId,
+    }).first();
+
+    if (!accountRef) {
+      throw new AppError(
+        "Không tìm thấy demo account",
+        404,
+        "DEMO_ACCOUNT_NOT_FOUND",
+      );
+    }
+
+    // Dùng cùng khóa với Limit Worker.
+    await lockDemoAccount(tx, accountRef.id);
+
+    // Đọc lại order sau khi lấy khóa.
+    const order = await tx.orm.public.Order.where({
+      id: orderId,
+      accountId: accountRef.id,
+    }).first();
+
+    if (!order) {
+      throw new AppError(
+        "Order không tồn tại",
+        404,
+        "ORDER_NOT_FOUND",
+      );
+    }
+
+    if (
+      order.orderType !== "BUY_LIMIT" &&
+      order.orderType !== "SELL_LIMIT"
+    ) {
+      throw new AppError(
+        "Chỉ có thể hủy Limit Order",
+        400,
+        "INVALID_ORDER_TYPE",
+      );
+    }
+
+    if (order.status !== "PENDING") {
+      throw new AppError(
+        "Order không còn ở trạng thái PENDING",
+        409,
+        "ORDER_NOT_PENDING",
+      );
+    }
+
+    // Atomic transition: PENDING -> CANCELLED.
+    const cancelledOrder = await tx.orm.public.Order.where({
+      id: order.id,
+      accountId: accountRef.id,
+      status: "PENDING",
+    }).update({
+      status: "CANCELLED",
+    });
+
+    if (!cancelledOrder) {
+      throw new AppError(
+        "Order đã thay đổi trạng thái",
+        409,
+        "ORDER_CONCURRENT_MODIFICATION",
+      );
+    }
+
+    return toOrderResponse(cancelledOrder);
+  });
+}
+export async function executePendingLimitOrder(
+  userId: string,
+  orderId: string,
+  quote: MarketPriceResponse,
+): Promise<OrderExecutionResponse | null> {
+  // The active provider, not a caller-supplied source label, controls execution.
+  assertTradingExecutionAllowed();
+
+  // Defense in depth: also reject explicitly unverified supplied quotes.
+  if (quote.source === "twelve-data") {
+    throw new AppError(
+      "Không thể xác minh thời điểm cập nhật giá Twelve Data tại nguồn",
+      503,
+      "TRADING_QUOTE_UNVERIFIED",
+    );
+  }
+
+  const limitMaxQuoteAgeMs = Number(
+    process.env.LIMIT_WORKER_MAX_QUOTE_AGE_MS ?? 5000,
+  );
+
+  if (quote.symbol !== XAUUSD_SPEC.symbol) {
+    throw new AppError(
+      "Market quote không đúng symbol",
+      502,
+      "INVALID_MARKET_SYMBOL",
+    );
+  }
+
+  const bid = Number(quote.bid);
+  const ask = Number(quote.ask);
+
+  if (
+    !Number.isFinite(bid) ||
+    !Number.isFinite(ask) ||
+    bid <= 0 ||
+    ask <= 0 ||
+    bid > ask
+  ) {
+    throw new AppError(
+      "Market quote không hợp lệ",
+      502,
+      "INVALID_MARKET_PRICE",
+    );
+  }
+
+  // Reject stale quotes before attempting to acquire a DB lock.
+  validateAutomaticQuoteFreshness(quote, limitMaxQuoteAgeMs);
+
+  return db.transaction(async (tx) => {
+    const accountRef = await tx.orm.public.DemoAccount.where({
+      userId,
+    }).first();
+
+    if (!accountRef) {
+      throw new AppError(
+        "Không tìm thấy demo account",
+        404,
+        "DEMO_ACCOUNT_NOT_FOUND",
+      );
+    }
+
+    // All order execution paths must lock the same account first.
+    await lockDemoAccount(tx, accountRef.id);
+
+    // The quote may have expired while waiting for the lock.
+    validateAutomaticQuoteFreshness(quote, limitMaxQuoteAgeMs);
+    const account = await tx.orm.public.DemoAccount.where({
+      id: accountRef.id,
+    }).first();
+
+    if (!account) {
+      throw new AppError(
+        "Không tìm thấy demo account",
+        404,
+        "DEMO_ACCOUNT_NOT_FOUND",
+      );
+    }
+
+    if (account.status !== "ACTIVE") {
+      throw new AppError(
+        "Demo account không hoạt động",
+        400,
+        "DEMO_ACCOUNT_NOT_ACTIVE",
+      );
+    }
+
+    // Read the order AFTER acquiring the account lock.
+    const order = await tx.orm.public.Order.where({
+      id: orderId,
+      accountId: account.id,
+    }).first();
+
+    if (!order) {
+      throw new AppError("Order không tồn tại", 404, "ORDER_NOT_FOUND");
+    }
+
+    // A second worker must not execute the same order again.
+    if (order.status !== "PENDING") {
+      return null;
+    }
+
+    if (order.orderType !== "BUY_LIMIT" && order.orderType !== "SELL_LIMIT") {
+      throw new AppError(
+        "Order không phải Limit Order",
+        400,
+        "INVALID_ORDER_TYPE",
+      );
+    }
+
+    if (
+      order.symbol !== XAUUSD_SPEC.symbol ||
+      (order.orderType === "BUY_LIMIT" && order.side !== "BUY") ||
+      (order.orderType === "SELL_LIMIT" && order.side !== "SELL")
+    ) {
+      throw new AppError(
+        "Thông tin Limit Order không hợp lệ",
+        500,
+        "INVALID_PENDING_ORDER",
+      );
+    }
+
+    if (order.requestedPrice == null) {
+      throw new AppError(
+        "Limit Order thiếu requestedPrice",
+        500,
+        "MISSING_LIMIT_PRICE",
+      );
+    }
+
+    const trigger = evaluateLimitTrigger(
+      {
+        orderType: order.orderType,
+        requestedPrice: String(order.requestedPrice),
+      },
+      quote,
+    );
+
+    if (!trigger.triggered || trigger.executionPrice === null) {
+      return null;
+    }
+
+    const executionPrice = Number(trigger.executionPrice);
+    const quantity = Number(order.quantity);
+
+    validateOrderVolume(quantity);
+
+    const leverage = Number(account.maxLeverage);
+    const balance = Number(account.balance);
+
+    if (!Number.isFinite(balance)) {
+      throw new AppError(
+        "Balance không hợp lệ",
+        500,
+        "INVALID_ACCOUNT_BALANCE",
+      );
+    }
+
+    const currentPositions = await tx.orm.public.Position.where({
+      accountId: account.id,
+      status: "OPEN",
+    }).all();
+
+    let currentUnrealizedPnl = 0;
+    let usedMargin = 0;
+
+    for (const position of currentPositions) {
+      const positionQuantity = Number(position.quantity);
+      const entryPrice = Number(position.averageEntryPrice);
+
+      if (
+        !Number.isFinite(positionQuantity) ||
+        positionQuantity <= 0 ||
+        !Number.isFinite(entryPrice) ||
+        entryPrice <= 0
+      ) {
+        throw new AppError(
+          "Dữ liệu position không hợp lệ",
+          500,
+          "INVALID_POSITION_MARGIN_DATA",
+        );
+      }
+
+      const currentPrice = position.side === "LONG" ? bid : ask;
+
+      currentUnrealizedPnl += calculatePnl(
+        position.side,
+        entryPrice,
+        currentPrice,
+        positionQuantity,
+      );
+
+      usedMargin += calculateRequiredMargin(
+        positionQuantity,
+        entryPrice,
+        leverage,
+      );
+    }
+
+    const equity = balance + currentUnrealizedPnl;
+    const freeMargin = equity - usedMargin;
+
+    const requiredMargin = calculateRequiredMargin(
+      quantity,
+      executionPrice,
+      leverage,
+    );
+
+    if (
+      !Number.isFinite(equity) ||
+      !Number.isFinite(freeMargin) ||
+      !Number.isFinite(requiredMargin)
+    ) {
+      throw new AppError(
+        "Kết quả tính margin không hợp lệ",
+        500,
+        "INVALID_MARGIN_CALCULATION",
+      );
+    }
+
+    const availableMarginCents = Math.round(freeMargin * 100);
+
+    const requiredMarginCents = Math.ceil(requiredMargin * 100 - 1e-8);
+
+    if (requiredMarginCents > availableMarginCents) {
+      throw new AppError(
+        "Không đủ free margin để khớp Limit Order",
+        400,
+        "INSUFFICIENT_MARGIN",
+        {
+          equity: roundMoney(equity),
+          usedMargin: roundMoney(usedMargin),
+          freeMargin: roundMoney(freeMargin),
+          requiredMargin: roundMoney(requiredMargin),
+        },
+      );
+    }
+
+    const positionSide = order.side === "BUY" ? "LONG" : "SHORT";
+
+    const stopLoss =
+      order.stopLoss == null ? undefined : String(order.stopLoss);
+
+    const takeProfit =
+      order.takeProfit == null ? undefined : String(order.takeProfit);
+
+    validateStopLevels(positionSide, bid, ask, stopLoss, takeProfit);
+
+    const existingPosition = await tx.orm.public.Position.where({
+      accountId: account.id,
+      symbol: order.symbol,
+      status: "OPEN",
+      side: positionSide,
+    }).first();
+
+    if (
+      existingPosition &&
+      (stopLoss !== undefined || takeProfit !== undefined)
+    ) {
+      throw new AppError(
+        "Position đã tồn tại. Hãy cập nhật SL/TP qua endpoint riêng.",
+        400,
+        "POSITION_STOPS_UPDATE_REQUIRED",
+      );
+    }
+
+    // Check freshness again immediately before the first write.
+    validateAutomaticQuoteFreshness(quote, limitMaxQuoteAgeMs);
+    const now = new Date().toISOString();
+
+    // Update the ORIGINAL pending order.
+    // The status predicate prevents a stale state transition.
+    const filledOrder = assertUpdated(
+      await tx.orm.public.Order.where({
+        id: order.id,
+        accountId: account.id,
+        status: "PENDING",
+      }).update({
+        status: "FILLED",
+        executedPrice: formatPrice(executionPrice),
+        executedAt: now,
+      }),
+      "Không thể cập nhật Limit Order",
+      "LIMIT_ORDER_UPDATE_FAILED",
+    );
+
+    let responsePosition: OrderExecutionPositionResponse;
+
+    if (existingPosition) {
+      const oldQuantity = Number(existingPosition.quantity);
+      const oldAverage = Number(existingPosition.averageEntryPrice);
+
+      const newQuantity = oldQuantity + quantity;
+
+      const newAverage = Number(
+        formatPrice(
+          calculateWeightedAverage(
+            oldQuantity,
+            oldAverage,
+            quantity,
+            executionPrice,
+          ),
+        ),
+      );
+
+      const newUnrealizedPnl = calculatePnl(
+        positionSide,
+        newAverage,
+        positionSide === "LONG" ? bid : ask,
+        newQuantity,
+      );
+
+      const updatedPosition = assertUpdated(
+        await tx.orm.public.Position.where({
+          id: existingPosition.id,
+          accountId: account.id,
+          status: "OPEN",
+        }).update({
+          quantity: String(newQuantity),
+          averageEntryPrice: formatPrice(newAverage),
+          currentPrice: formatPrice(positionSide === "LONG" ? bid : ask),
+          unrealizedPnl: formatDecimal(newUnrealizedPnl),
+        }),
+        "Không thể cập nhật position",
+        "POSITION_UPDATE_FAILED",
+      );
+
+      await tx.orm.public.Trade.create({
+        accountId: account.id,
+        orderId: filledOrder.id,
+        positionId: updatedPosition.id,
+        symbol: order.symbol,
+        side: order.side,
+        quantity: String(order.quantity),
+        entryPrice: formatPrice(executionPrice),
+        exitPrice: null,
+        realizedPnl: null,
+        commission: ZERO,
+      });
+
+      responsePosition = toPositionResponse(updatedPosition);
+    } else {
+      const currentPrice = positionSide === "LONG" ? bid : ask;
+
+      const unrealizedPnl = calculatePnl(
+        positionSide,
+        executionPrice,
+        currentPrice,
+        quantity,
+      );
+
+      const newPosition = await tx.orm.public.Position.create({
+        accountId: account.id,
+        symbol: order.symbol,
+        side: positionSide,
+        quantity: String(order.quantity),
+        averageEntryPrice: formatPrice(executionPrice),
+        currentPrice: formatPrice(currentPrice),
+        unrealizedPnl: formatDecimal(unrealizedPnl),
+        stopLoss: stopLoss ?? null,
+        takeProfit: takeProfit ?? null,
+        status: "OPEN",
+      });
+
+      await tx.orm.public.Trade.create({
+        accountId: account.id,
+        orderId: filledOrder.id,
+        positionId: newPosition.id,
+        symbol: order.symbol,
+        side: order.side,
+        quantity: String(order.quantity),
+        entryPrice: formatPrice(executionPrice),
+        exitPrice: null,
+        realizedPnl: null,
+        commission: ZERO,
+      });
+
+      responsePosition = toPositionResponse(newPosition);
+    }
+
+    // Revalue ALL open positions using the same quote.
+    const openPositions = await tx.orm.public.Position.where({
+      accountId: account.id,
+      status: "OPEN",
+    }).all();
+
+    const totalUnrealizedPnl = openPositions.reduce((total, position) => {
+      const currentPrice = position.side === "LONG" ? bid : ask;
+
+      return (
+        total +
+        calculatePnl(
+          position.side,
+          Number(position.averageEntryPrice),
+          currentPrice,
+          Number(position.quantity),
+        )
+      );
+    }, 0);
+
+    const newEquity = balance + totalUnrealizedPnl;
+
+    await tx.orm.public.DemoAccount.where({
+      id: account.id,
+    }).update({
+      equity: formatDecimal(newEquity),
+    });
+
+    return {
+      order: toOrderResponse(filledOrder),
+
+      account: {
+        accountId: account.id,
+        accountNumber: account.accountNumber,
+        balance: formatDecimal(balance),
+        equity: formatDecimal(newEquity),
+        unrealizedPnl: formatDecimal(totalUnrealizedPnl),
+      },
+
+      position: responsePosition,
+
+      realizedPnl: formatDecimal(0),
     };
   });
 }
