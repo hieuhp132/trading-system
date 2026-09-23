@@ -1,37 +1,15 @@
-import { Activity, BarChart3, RefreshCw, Wallet } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { ArrowUpRight, ArrowDownRight, Wallet } from "lucide-react";
 
 import { getAccountBalance } from "../features/account/api";
 import { getMarketPrice } from "../features/market/api";
 import { useAuthStore } from "../stores/auth";
 
-import { TradingOrderPanel } from "../features/orders/components/TradingOrderPanel";
-import { PositionsPanel } from "../features/positions/components/PositionsPanel.tsx";
-import { OrdersPanel } from "../features/orders/components/OrdersPanel.tsx";
-import { XAUUSDChart } from "../features/market/components/XAUUSDChart.tsx";
-
-function formatMoney(value: string | number) {
-  return new Intl.NumberFormat("en-US", {
+const money = (value: string | number) =>
+  new Intl.NumberFormat("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(Number(value));
-}
-function getPnlClass(value: string | number) {
-  const pnl = Number(value);
-
-  if (pnl > 0) {
-    return "pnl-positive";
-  }
-
-  if (pnl < 0) {
-    return "pnl-negative";
-  }
-
-  return "pnl-neutral";
-}
-function formatTime(timestamp: string) {
-  return new Date(timestamp).toLocaleTimeString();
-}
 
 export function DashboardPage() {
   const user = useAuthStore((state) => state.user);
@@ -51,201 +29,118 @@ export function DashboardPage() {
   const account = accountQuery.data;
   const market = marketQuery.data;
 
-  const marketStatus = marketQuery.isLoading
-    ? "loading"
-    : marketQuery.isError
-      ? "offline"
-      : market
-        ? "online"
-        : "offline";
-
   return (
-    <div className="dashboard-page">
-      {/* =========================
-          PAGE HEADER
-          ========================= */}
-
-      <div className="page-header">
-        <div>
-          <p className="page-eyebrow">PAPER TRADING</p>
-
-          <h1>Trading Dashboard</h1>
-
-          <p className="page-description">
-            Xin chào, <strong>{user?.fullname ?? user?.email}</strong>. Đây là
-            khu vực giao dịch demo XAUUSD.
-          </p>
-        </div>
-
-        <div className="market-status">
-          <span
-            className={`status-dot ${
-              marketQuery.isError ? "status-dot-error" : ""
-            }`}
-          />
-
-          {marketQuery.isLoading
-            ? "Connecting..."
-            : marketQuery.isError
-              ? "Market Offline"
-              : "Market Online"}
-        </div>
+    <div className="app-page">
+      <div className="app-page__heading">
+        <p className="app-eyebrow">PAPER TRADING</p>
+        <h1>Overview</h1>
+        <p>Xin chào, {user?.fullname ?? user?.email ?? "Trader"}.</p>
       </div>
 
-      {/* =========================
-          ACCOUNT SUMMARY
-          ========================= */}
+      <section className="app-balance-card" aria-label="Account overview">
+        <div className="app-balance-card__heading">
+          <span>Account equity</span>
+          <Wallet size={20} aria-hidden="true" />
+        </div>
 
-      <section className="dashboard-grid">
-        <article className="dashboard-card">
-          <div className="card-icon">
-            <Wallet size={20} />
-          </div>
+        <strong className="app-balance-card__amount">
+          {account ? `$${money(account.equity)}` : "--"}
+        </strong>
 
-          <div>
+        <div className="app-balance-card__details app-account-metrics">
+          <div className="app-account-metric">
             <span>Balance</span>
-
             <strong>
-              {account ? `$${formatMoney(account.balance)}` : "--"}
+              {account ? `$${money(account.balance)}` : "--"}
             </strong>
           </div>
-        </article>
 
-        <article className="dashboard-card">
-          <div className="card-icon">
-            <BarChart3 size={20} />
-          </div>
-
-          <div>
-            <span>Equity</span>
-
-            <strong>
-              {account ? `$${formatMoney(account.equity)}` : "--"}
-            </strong>
-          </div>
-        </article>
-
-        <article className="dashboard-card">
-          <div className="card-icon">
-            <Activity size={20} />
-          </div>
-
-          <div>
+          <div className="app-account-metric">
             <span>Unrealized P&amp;L</span>
-
             <strong
               className={
-                account ? getPnlClass(account.unrealizedPnl) : "pnl-neutral"
+                Number(account?.unrealizedPnl ?? 0) >= 0
+                  ? "app-profit"
+                  : "app-loss"
               }
             >
-              {account ? `$${formatMoney(account.unrealizedPnl)}` : "--"}
+              {account ? `$${money(account.unrealizedPnl)}` : "--"}
             </strong>
           </div>
-        </article>
-      </section>
 
-      {/* =========================
-          MARKET QUOTE
-          ========================= */}
-
-      <section className="dashboard-panel market-panel">
-        <div className="panel-header">
-          <div>
-            <div className="panel-title-row">
-              <h2>XAUUSD</h2>
-
-              {marketQuery.isFetching && (
-                <RefreshCw size={15} className="spin" />
-              )}
-            </div>
-
-            <p>Gold / US Dollar · {market?.source ?? "demo"}</p>
-          </div>
-
-          {market && (
-            <span className="market-time">
-              Updated {formatTime(market.timestamp)}
-            </span>
-          )}
-        </div>
-
-        <div className="quote-grid">
-          <div className="quote-card">
-            <span>BID</span>
-
-            <strong>{market ? formatMoney(market.bid) : "--"}</strong>
-
-            <small>SELL execution</small>
-          </div>
-
-          <div className="quote-card">
-            <span>ASK</span>
-
-            <strong>{market ? formatMoney(market.ask) : "--"}</strong>
-
-            <small>BUY execution</small>
-          </div>
-
-          <div className="quote-card">
-            <span>LAST</span>
-
-            <strong>{market ? formatMoney(market.last) : "--"}</strong>
-
-            <small>Reference price</small>
-          </div>
-
-          <div className="quote-card">
-            <span>SPREAD</span>
-
+          <div className="app-account-metric">
+            <span>Used Margin</span>
             <strong>
-              {market
-                ? formatMoney(Number(market.ask) - Number(market.bid))
+              {account ? `$${money(account.usedMargin)}` : "--"}
+            </strong>
+          </div>
+
+          <div className="app-account-metric">
+            <span>Free Margin</span>
+            <strong
+              className={
+                account && Number(account.freeMargin) < 0
+                  ? "app-loss"
+                  : ""
+              }
+            >
+              {account ? `$${money(account.freeMargin)}` : "--"}
+            </strong>
+          </div>
+
+          <div className="app-account-metric">
+            <span>Margin Level</span>
+            <strong>
+              {account
+                ? account.marginLevel === null
+                  ? "—"
+                  : `${money(account.marginLevel)}%`
                 : "--"}
             </strong>
-
-            <small>Ask − Bid</small>
           </div>
         </div>
+        {accountQuery.isError && (
+          <p role="alert">Không thể tải thông tin tài khoản.</p>
+        )}
       </section>
 
-      {/* =========================
-          TRADING WORKSPACE
-          ========================= */}
-
-      <section className="dashboard-panel trading-workspace">
-        <div className="panel-header">
+      <section className="app-surface" aria-label="Market snapshot">
+        <div className="app-section-heading">
           <div>
-            <h2>Trading Workspace</h2>
+            <p className="app-eyebrow">MARKET SNAPSHOT</p>
+            <h2>XAUUSD</h2>
+          </div>
+          <span className="app-demo-badge">
+            {marketQuery.isError
+              ? "Offline"
+              : !market
+                ? "Loading"
+                : market.metadata.executable
+                  ? "Demo"
+                  : "Reference only"}
+          </span>
+        </div>
 
-            <p>
-              Theo dõi giá XAUUSD và thực hiện MARKET order bằng tài khoản demo.
-            </p>
+        <div className="app-quote-grid">
+          <div className="app-quote">
+            <span><ArrowDownRight size={16} /> BID · SELL</span>
+            <strong>{market ? money(market.bid) : "--"}</strong>
+          </div>
+          <div className="app-quote">
+            <span><ArrowUpRight size={16} /> ASK · BUY</span>
+            <strong>{market ? money(market.ask) : "--"}</strong>
           </div>
         </div>
-
-        <XAUUSDChart interval="1m" />
-
-        <div className="trading-panel">
-          <TradingOrderPanel
-            symbol="XAUUSD"
-            bid={market ? Number(market.bid) : null}
-            ask={market ? Number(market.ask) : null}
-            marketStatus={marketStatus}
-          />
-        </div>
+        {market && !market.metadata.executable && (
+          <p role="status">
+            Giá tham khảo từ {market.source}. BID/ASK đang được mô phỏng;
+            không sử dụng để khớp lệnh.
+          </p>
+        )}
+        {marketQuery.isError && (
+          <p role="alert">Không thể tải giá thị trường.</p>
+        )}
       </section>
-
-      {/* =========================
-          OPEN POSITIONS
-          ========================= */}
-
-      <PositionsPanel />
-
-      {/* =========================
-          ORDER HISTORY
-          ========================= */}
-
-      <OrdersPanel />
     </div>
   );
 }

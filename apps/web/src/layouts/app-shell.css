@@ -1,0 +1,528 @@
+:root {
+  --app-bg: #f8fafc;
+  --app-surface: #ffffff;
+  --app-text: #0f172a;
+  --app-muted: #475569;
+  --app-border: #e2e8f0;
+  --app-primary: #2563eb;
+  --app-primary-soft: #eff6ff;
+  --app-profit: #15803d;
+  --app-loss: #b91c1c;
+
+  font-family: Inter, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", system-ui, sans-serif;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app-shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  background: var(--app-bg);
+  color: var(--app-text);
+}
+
+.app-sidebar {
+  display: none;
+}
+
+.app-shell__workspace {
+  flex: 1;
+  min-width: 0;
+}
+
+.app-topbar {
+  height: 64px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--app-surface);
+  border-bottom: 1px solid var(--app-border);
+}
+
+.app-topbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--app-text);
+  font-size: 16px;
+}
+
+.app-topbar__brand svg {
+  color: var(--app-primary);
+}
+
+.app-demo-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--app-primary-soft);
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.app-content {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px 16px calc(108px + env(safe-area-inset-bottom));
+}
+
+.app-page {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+
+.app-page__heading h1 {
+  margin: 4px 0 6px;
+  font-size: clamp(24px, 4vw, 32px);
+  letter-spacing: -0.035em;
+  color: var(--app-text);
+}
+
+.app-page__heading p:last-child {
+  margin: 0;
+  color: var(--app-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.app-eyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  color: var(--app-primary);
+}
+
+.app-surface {
+  min-width: 0;
+  overflow: hidden;
+  padding: 18px;
+  border: 1px solid var(--app-border);
+  border-radius: 20px;
+  background: var(--app-surface);
+}
+
+.app-balance-card {
+  padding: 24px;
+  border-radius: 24px;
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.app-balance-card__heading,
+.app-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-balance-card__heading {
+  color: #cbd5e1;
+  font-size: 14px;
+}
+
+.app-balance-card__amount {
+  display: block;
+  margin: 16px 0 24px;
+  font-size: clamp(28px, 6vw, 38px);
+  letter-spacing: -0.04em;
+  overflow-wrap: anywhere;
+}
+
+.app-balance-card__details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  padding-top: 18px;
+  border-top: 1px solid #334155;
+}
+
+.app-balance-card__details > div {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.app-balance-card__details span {
+  color: #cbd5e1;
+  font-size: 13px;
+}
+
+.app-balance-card__details strong {
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.app-profit { color: #4ade80 !important; }
+.app-loss { color: #fca5a5 !important; }
+
+.app-section-heading h2 {
+  margin: 4px 0 0;
+  color: var(--app-text);
+  font-size: 20px;
+}
+
+.app-quote-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.app-quote {
+  min-width: 0;
+  padding: 16px 12px;
+  border: 1px solid var(--app-border);
+  border-radius: 14px;
+  background: var(--app-bg);
+}
+
+.app-quote span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--app-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.app-quote strong {
+  display: block;
+  margin-top: 10px;
+  color: var(--app-text);
+  font-size: clamp(18px, 4vw, 26px);
+  overflow-wrap: anywhere;
+}
+
+.app-balance-card__amount,
+.app-balance-card__details strong,
+.app-quote strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.app-nav--mobile {
+  position: fixed;
+  z-index: 100;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--app-border);
+  background: rgba(255, 255, 255, 0.97);
+}
+
+.app-nav__item {
+  min-width: 0;
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border-radius: 12px;
+  color: var(--app-muted);
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.app-nav__item--active {
+  color: var(--app-primary);
+  background: var(--app-primary-soft);
+}
+
+.app-nav__item:focus-visible {
+  outline: 3px solid var(--app-primary);
+  outline-offset: 2px;
+}
+
+@media (min-width: 900px) {
+  .app-sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100dvh;
+    width: 248px;
+    flex: 0 0 248px;
+    display: flex;
+    flex-direction: column;
+    padding: 28px 14px;
+    background: var(--app-surface);
+    border-right: 1px solid var(--app-border);
+  }
+
+  .app-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 12px 30px;
+  }
+
+  .app-brand__icon {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+    background: var(--app-primary);
+    color: #ffffff;
+  }
+
+  .app-brand strong,
+  .app-brand small {
+    display: block;
+  }
+
+  .app-brand strong {
+    font-size: 15px;
+  }
+
+  .app-brand small {
+    margin-top: 4px;
+    color: var(--app-muted);
+    font-size: 12px;
+  }
+
+  .app-nav--desktop {
+    display: grid;
+    gap: 6px;
+  }
+
+  .app-nav--desktop .app-nav__item {
+    min-height: 48px;
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 0 14px;
+    font-size: 14px;
+  }
+
+  .app-sidebar__footer {
+    margin-top: auto;
+    padding: 14px;
+    color: var(--app-muted);
+    font-size: 12px;
+  }
+
+  .app-nav--mobile {
+    display: none;
+  }
+
+  .app-topbar__brand {
+    visibility: hidden;
+  }
+
+  .app-content {
+    padding: 32px;
+  }
+}
+
+@media (max-width: 400px) {
+  .app-content {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .app-nav__item {
+    font-size: 10px;
+  }
+
+  .app-balance-card {
+    padding: 20px 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell *,
+  .app-shell *::before,
+  .app-shell *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* GOLD TRADING DARK NAVY THEME START */
+
+/* Design tokens */
+:root {
+  color-scheme: dark;
+
+  --app-bg: #10151f;
+  --app-surface: #151d2d;
+  --app-surface-raised: #1b2536;
+
+  --app-text: #f3f5fa;
+  --app-muted: #a9b4c8;
+  --app-border: #2b364a;
+
+  --app-primary: #d6ad60;
+  --app-primary-hover: #e6c47f;
+  --app-primary-soft: rgba(214, 173, 96, 0.12);
+
+  --app-profit: #4ade80;
+  --app-loss: #f87171;
+}
+
+/* Main layout */
+.app-shell {
+  background: var(--app-bg);
+  color: var(--app-text);
+}
+
+.app-shell__workspace {
+  background: var(--app-bg);
+}
+
+/* Header */
+.app-topbar {
+  background: #151d2d;
+  border-bottom-color: var(--app-border);
+}
+
+.app-topbar__brand {
+  color: var(--app-text);
+}
+
+.app-topbar__brand svg {
+  color: var(--app-primary);
+}
+
+.app-demo-badge {
+  background: var(--app-primary-soft);
+  color: var(--app-primary-hover);
+  border: 1px solid rgba(214, 173, 96, 0.24);
+}
+
+/* Page typography */
+.app-page__heading h1,
+.app-section-heading h2 {
+  color: var(--app-text);
+}
+
+.app-page__heading p:last-child {
+  color: var(--app-muted);
+}
+
+.app-eyebrow {
+  color: var(--app-primary);
+}
+
+/* Cards */
+.app-surface {
+  background: var(--app-surface);
+  border-color: var(--app-border);
+  color: var(--app-text);
+}
+
+/* Account balance */
+.app-balance-card {
+  background: linear-gradient(
+    145deg,
+    #1c2940 0%,
+    #151d2d 60%,
+    #111827 100%
+  );
+  border: 1px solid #35435b;
+  color: var(--app-text);
+}
+
+.app-balance-card__heading,
+.app-balance-card__details span {
+  color: var(--app-muted);
+}
+
+.app-balance-card__details {
+  border-top-color: var(--app-border);
+}
+
+.app-balance-card__amount,
+.app-balance-card__details strong {
+  color: var(--app-text);
+}
+
+/* Market quotes */
+.app-quote {
+  background: var(--app-surface-raised);
+  border-color: var(--app-border);
+}
+
+.app-quote span {
+  color: var(--app-muted);
+}
+
+.app-quote strong {
+  color: var(--app-text);
+}
+
+/* Profit / loss */
+.app-profit {
+  color: var(--app-profit) !important;
+}
+
+.app-loss {
+  color: var(--app-loss) !important;
+}
+
+/* Navigation */
+.app-nav__item {
+  color: var(--app-muted);
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.app-nav__item:hover {
+  color: var(--app-text);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.app-nav__item--active,
+.app-nav__item--active:hover {
+  color: var(--app-primary-hover);
+  background: var(--app-primary-soft);
+}
+
+.app-nav__item:focus-visible {
+  outline-color: var(--app-primary);
+}
+
+/* Mobile bottom navigation */
+.app-nav--mobile {
+  background: rgba(21, 29, 45, 0.97);
+  border-top-color: var(--app-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* Desktop sidebar */
+@media (min-width: 900px) {
+  .app-sidebar {
+    background: #111827;
+    border-right-color: var(--app-border);
+  }
+
+  .app-brand__icon {
+    background: var(--app-primary);
+    color: #111827;
+  }
+
+  .app-brand strong {
+    color: var(--app-text);
+  }
+
+  .app-brand small,
+  .app-sidebar__footer {
+    color: var(--app-muted);
+  }
+}
+
+/* GOLD TRADING DARK NAVY THEME END */

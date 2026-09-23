@@ -1,0 +1,805 @@
+/*
+ * Gold Trading — Dark Navy component theme
+ * Scope: authenticated application only.
+ * Login styles are intentionally unchanged.
+ */
+
+.app-shell {
+  --trade-bg: #10151f;
+  --trade-surface: #151d2d;
+  --trade-raised: #1b2536;
+  --trade-border: #2b364a;
+  --trade-text: #f3f5fa;
+  --trade-muted: #a9b4c8;
+  --trade-gold: #d6ad60;
+  --trade-profit: #4ade80;
+  --trade-loss: #f87171;
+
+  color: var(--trade-text);
+}
+
+/* Shared panels */
+
+.app-shell .dashboard-panel,
+.app-shell .dashboard-card,
+.app-shell .trading-order-panel {
+  background: var(--trade-surface);
+  border-color: var(--trade-border);
+  color: var(--trade-text);
+}
+
+.app-shell .panel-header {
+  border-bottom-color: var(--trade-border);
+}
+
+.app-shell .panel-header h2,
+.app-shell .dashboard-card strong,
+.app-shell .trading-order-panel__header h2 {
+  color: var(--trade-text);
+}
+
+.app-shell .panel-header p,
+.app-shell .dashboard-card span,
+.app-shell .trading-order-panel__header span,
+.app-shell .market-time,
+.app-shell .market-chart-loading {
+  color: var(--trade-muted);
+}
+
+/* Trading order */
+
+.app-shell .trading-order-panel__prices > div {
+  background: var(--trade-raised);
+  border-color: var(--trade-border);
+}
+
+.app-shell .trading-order-panel__prices span,
+.app-shell .trading-order-panel__field label {
+  color: var(--trade-muted);
+}
+
+.app-shell .trading-order-panel__prices strong {
+  color: var(--trade-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.app-shell .trading-order-panel__field input {
+  background: #101827;
+  color: var(--trade-text);
+  border-color: #39475f;
+  color-scheme: dark;
+}
+
+.app-shell .trading-order-panel__field input::placeholder {
+  color: #94a3b8;
+}
+
+.app-shell .trading-order-panel__field input:focus {
+  border-color: var(--trade-gold);
+  box-shadow: 0 0 0 3px rgba(214, 173, 96, 0.15);
+}
+
+.app-shell .trading-order-panel__field input:disabled {
+  background: #111827;
+}
+
+/* Trading feedback */
+
+.app-shell .trading-order-panel__error {
+  background: #3a1822;
+  border-color: #7f303e;
+  color: #fca5a5;
+}
+
+.app-shell .trading-order-panel__success {
+  background: #123426;
+  border-color: #236344;
+  color: #86efac;
+}
+
+.app-shell .trading-order-panel__market-status {
+  background: #382c19;
+  border-color: #80612f;
+  color: #f6d58c;
+}
+
+/* BUY / SELL: preserve action semantics */
+
+.app-shell .trading-order-panel__actions button:first-child {
+  background: #166534;
+  color: #ffffff;
+}
+
+.app-shell .trading-order-panel__actions button:last-child {
+  background: #b91c1c;
+  color: #ffffff;
+}
+
+.app-shell .trading-order-panel__actions button:focus-visible,
+.app-shell .position-close-button:focus-visible,
+.app-shell .position-confirm-dialog button:focus-visible {
+  outline: 2px solid var(--trade-gold);
+  outline-offset: 3px;
+}
+
+/* Positions and orders */
+
+.app-shell .positions-table-wrapper,
+.app-shell .orders-table-wrapper {
+  background: var(--trade-surface);
+  border-color: var(--trade-border);
+  scrollbar-color: #52617a #151d2d;
+}
+
+.app-shell .positions-table,
+.app-shell .orders-table {
+  background: var(--trade-surface);
+  color: var(--trade-text);
+}
+
+.app-shell .positions-table thead,
+.app-shell .orders-table thead {
+  background: var(--trade-raised);
+}
+
+.app-shell .positions-table th,
+.app-shell .orders-table th {
+  color: var(--trade-muted);
+  border-bottom-color: var(--trade-border);
+}
+
+.app-shell .positions-table td,
+.app-shell .orders-table td {
+  color: var(--trade-text);
+  border-bottom-color: var(--trade-border);
+  font-variant-numeric: tabular-nums;
+}
+
+.app-shell .positions-table td strong,
+.app-shell .orders-table td strong {
+  color: var(--trade-text);
+}
+
+.app-shell .positions-table tbody tr:hover,
+.app-shell .orders-table tbody tr:hover {
+  background: #202c40;
+}
+
+.app-shell .position-side--long,
+.app-shell .position-pnl--profit,
+.app-shell .order-side--buy {
+  color: var(--trade-profit);
+}
+
+.app-shell .position-side--short,
+.app-shell .position-pnl--loss,
+.app-shell .order-side--sell {
+  color: var(--trade-loss);
+}
+
+.app-shell .position-status,
+.app-shell .order-status--filled {
+  background: #143927;
+  color: #86efac;
+}
+
+.app-shell .order-status--pending {
+  background: #3b2e18;
+  color: #f6d58c;
+}
+
+.app-shell .order-status--rejected,
+.app-shell .order-status--cancelled {
+  background: #3b1b24;
+  color: #fca5a5;
+}
+
+.app-shell .position-close-button {
+  background: var(--trade-raised);
+  color: var(--trade-text);
+  border-color: #43516a;
+}
+
+.app-shell .position-close-button:hover:not(:disabled) {
+  background: #29364b;
+  border-color: var(--trade-gold);
+}
+
+/* Market chart container */
+
+.app-shell .market-chart-placeholder {
+  background: var(--trade-raised);
+  color: var(--trade-muted);
+}
+
+.app-shell .market-status {
+  background: var(--trade-surface);
+  border-color: var(--trade-border);
+  color: var(--trade-muted);
+}
+
+/* Close position confirmation */
+
+.position-confirm-overlay {
+  background: rgba(3, 7, 18, 0.78);
+}
+
+.position-confirm-dialog {
+  background: #151d2d;
+  border-color: #35435b;
+  color: #f3f5fa;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+}
+
+.position-confirm-dialog__header,
+.position-confirm-dialog__actions {
+  border-color: #2b364a;
+}
+
+.position-confirm-dialog__eyebrow,
+.position-confirm-dialog__details span {
+  color: #a9b4c8;
+}
+
+.position-confirm-dialog__header h3,
+.position-confirm-dialog__details strong {
+  color: #f3f5fa;
+}
+
+.position-confirm-dialog__details {
+  background: #1b2536;
+}
+
+.position-confirm-dialog__message {
+  color: #cbd5e1;
+}
+
+.position-confirm-dialog__close,
+.position-confirm-dialog__cancel {
+  background: #1b2536;
+  border-color: #43516a;
+  color: #f3f5fa;
+}
+
+.position-confirm-dialog__close:hover:not(:disabled),
+.position-confirm-dialog__cancel:hover:not(:disabled) {
+  background: #29364b;
+  border-color: #d6ad60;
+  color: #ffffff;
+}
+
+/* Mobile: retain two price columns when they fit */
+
+@media (max-width: 640px) {
+  .app-shell .trading-order-panel__prices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .app-shell .trading-order-panel__prices > div {
+    min-width: 0;
+    padding: 12px 10px;
+  }
+
+  .app-shell .trading-order-panel__prices strong {
+    display: block;
+    font-size: clamp(16px, 4.5vw, 20px);
+    overflow-wrap: anywhere;
+  }
+
+  .app-shell .trading-order-panel__actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .app-shell .trading-order-panel__actions button {
+    min-width: 0;
+    min-height: 48px;
+  }
+}
+
+@media (max-width: 360px) {
+  .app-shell .trading-order-panel__prices {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* POSITIONS MOBILE START */
+
+.positions-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .positions-desktop {
+    display: none;
+  }
+
+  .positions-mobile {
+    display: grid;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .position-mobile-card {
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid #2b364a;
+    border-radius: 16px;
+    background: #1b2536;
+    color: #f3f5fa;
+  }
+
+  .position-mobile-card__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .position-mobile-card__header > div {
+    display: grid;
+    gap: 8px;
+  }
+
+  .position-mobile-card__symbol {
+    font-size: 17px;
+  }
+
+  .position-mobile-card__pnl {
+    display: grid;
+    gap: 6px;
+    margin-top: 18px;
+    padding: 14px 0;
+    border-top: 1px solid #2b364a;
+    border-bottom: 1px solid #2b364a;
+  }
+
+  .position-mobile-card__pnl span,
+  .position-mobile-card__details span {
+    color: #a9b4c8;
+    font-size: 12px;
+  }
+
+  .position-mobile-card__pnl strong {
+    font-size: 24px;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+
+  .position-mobile-card__details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 12px;
+    padding: 18px 0;
+  }
+
+  .position-mobile-card__details > div {
+    display: grid;
+    min-width: 0;
+    gap: 6px;
+  }
+
+  .position-mobile-card__details strong {
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+
+  .position-mobile-card__close {
+    width: 100%;
+    min-height: 46px;
+    font-size: 14px;
+  }
+
+  /* Bottom sheet */
+  .position-confirm-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .position-confirm-dialog {
+    width: 100%;
+    max-width: none;
+    max-height: min(90dvh, 760px);
+    overflow-y: auto;
+    border-radius: 22px 22px 0 0;
+    border-bottom: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .position-confirm-dialog__header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #151d2d;
+  }
+}
+
+/* POSITIONS MOBILE END */
+
+/* ORDERS MOBILE START */
+
+.orders-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .orders-desktop {
+    display: none;
+  }
+
+  .orders-mobile {
+    display: grid;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .order-mobile-card {
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid #2b364a;
+    border-radius: 16px;
+    background: #1b2536;
+    color: #f3f5fa;
+  }
+
+  .order-mobile-card__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .order-mobile-card__identity {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .order-mobile-card__symbol {
+    color: #f3f5fa;
+    font-size: 17px;
+  }
+
+  .order-mobile-card__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #2b364a;
+    color: #a9b4c8;
+    font-size: 12px;
+  }
+
+  .order-mobile-card__type {
+    padding: 5px 8px;
+    border: 1px solid #43516a;
+    border-radius: 7px;
+    background: #151d2d;
+    color: #e2e8f0;
+    font-weight: 600;
+  }
+
+  .order-mobile-card__details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 12px;
+    padding-top: 16px;
+  }
+
+  .order-mobile-card__details > div {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .order-mobile-card__details span {
+    color: #a9b4c8;
+    font-size: 12px;
+  }
+
+  .order-mobile-card__details strong {
+    color: #f3f5fa;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* ORDERS MOBILE END */
+
+/* PARTIAL CLOSE START */
+
+.position-close-options {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid #2b364a;
+  border-radius: 14px;
+  background: #10151f;
+}
+
+.position-close-options__modes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.position-close-options__mode {
+  min-height: 42px;
+  padding: 10px;
+  border: 1px solid #2b364a;
+  border-radius: 10px;
+  background: #1b2536;
+  color: #a9b4c8;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.position-close-options__mode.is-active {
+  border-color: #d6ad60;
+  background: rgba(214, 173, 96, 0.12);
+  color: #d6ad60;
+}
+
+.position-close-options__partial {
+  display: grid;
+  gap: 12px;
+}
+
+.position-close-options__partial label {
+  color: #e2e8f0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.position-close-options__partial input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #43516a;
+  border-radius: 10px;
+  background: #151d2d;
+  color: #f3f5fa;
+  font-size: 16px;
+}
+
+.position-close-options__partial input:focus {
+  outline: 2px solid #d6ad60;
+  outline-offset: 2px;
+}
+
+.position-close-options__summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.position-close-options__summary > div {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #2b364a;
+  border-radius: 10px;
+  background: #151d2d;
+}
+
+.position-close-options__summary span {
+  color: #a9b4c8;
+  font-size: 11px;
+}
+
+.position-close-options__summary strong {
+  color: #f3f5fa;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.position-close-options__error {
+  margin: 0;
+  color: #f87171;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* PARTIAL CLOSE END */
+
+/* ACCOUNT METRICS START */
+
+.app-balance-card .app-account-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px 24px;
+}
+
+.app-balance-card .app-account-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.app-balance-card .app-account-metric > span {
+  color: #a9b4c8;
+  font-size: 12px;
+}
+
+.app-balance-card .app-account-metric > strong {
+  color: #f3f5fa;
+  font-size: 17px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.app-balance-card .app-account-metric > strong.app-profit {
+  color: #4ade80;
+}
+
+.app-balance-card .app-account-metric > strong.app-loss {
+  color: #f87171;
+}
+
+@media (max-width: 768px) {
+  .app-balance-card .app-account-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 12px;
+  }
+
+  .app-balance-card .app-account-metric > strong {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 360px) {
+  .app-balance-card .app-account-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ACCOUNT METRICS END */
+
+/* EDIT POSITION STOPS START */
+
+.position-stops-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.position-stops-dialog__fields {
+  display: grid;
+  gap: 18px;
+  padding: 20px 22px;
+}
+
+.position-stops-dialog__field {
+  display: grid;
+  gap: 8px;
+}
+
+.position-stops-dialog__field label {
+  color: #f3f5fa;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.position-stops-dialog__field input {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid #43516a;
+  border-radius: 10px;
+  background: #10151f;
+  color: #f3f5fa;
+  font-size: 16px;
+}
+
+.position-stops-dialog__field input:focus {
+  outline: 2px solid #d6ad60;
+  outline-offset: 2px;
+}
+
+.position-stops-dialog__field input[aria-invalid="true"] {
+  border-color: #f87171;
+}
+
+.position-stops-dialog__hint {
+  margin: 0;
+  color: #a9b4c8;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.position-stops-dialog__error {
+  margin: 0;
+  color: #f87171;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.position-stops-dialog__save {
+  border-color: #d6ad60;
+  background: #d6ad60;
+  color: #10151f;
+}
+
+.position-stops-dialog__save:hover:not(:disabled) {
+  border-color: #e5c47f;
+  background: #e5c47f;
+}
+
+@media (max-width: 768px) {
+  .position-stops-actions--mobile {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .position-stops-actions--mobile .position-close-button {
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+    font-size: 12px;
+  }
+
+  .position-stops-dialog__fields {
+    padding: 18px;
+  }
+}
+
+/* EDIT POSITION STOPS END */
+
+/* =========================================================
+   Cancel pending limit orders
+   ========================================================= */
+
+.app-shell .order-cancel-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 7px 12px;
+  border: 1px solid rgba(248, 113, 113, 0.38);
+  border-radius: 8px;
+  background: rgba(127, 29, 29, 0.18);
+  color: #fca5a5;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.app-shell .order-cancel-button:hover:not(:disabled) {
+  background: rgba(185, 28, 28, 0.28);
+  border-color: rgba(248, 113, 113, 0.7);
+  color: #fecaca;
+}
+
+.app-shell .order-cancel-button:focus-visible {
+  outline: 2px solid #fca5a5;
+  outline-offset: 3px;
+}
+
+.app-shell .order-cancel-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .app-shell .order-mobile-card > .order-cancel-button {
+    width: 100%;
+    margin-top: 12px;
+    min-height: 40px;
+  }
+}
