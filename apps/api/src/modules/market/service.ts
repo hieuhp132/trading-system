@@ -1,3 +1,5 @@
+import { toReferenceQuote } from "./quote-adapter.js";
+import type { ExecutionQuote } from "./quote-contract.js";
 import type {
   CandleInterval,
   MarketCandlesResponse,
@@ -53,10 +55,27 @@ export async function getMarketPrice(
 
 export async function getTradingQuote(
   symbol: string,
-): Promise<MarketPriceResponse> {
+): Promise<ExecutionQuote> {
+  /*
+   * Keep the existing provider-level fail-closed guard during
+   * migration. Twelve Data must still be rejected before a price
+   * request is attempted.
+   */
   assertTradingExecutionAllowed();
 
-  const quote = await getMarketPrice(symbol);
+  const legacyPrice = await getMarketPrice(symbol);
+
+  /*
+   * Explicit trust boundary:
+   *
+   * Legacy provider response
+   *   -> ReferenceQuote
+   *   -> execution validation/narrowing
+   *   -> ExecutionQuote
+   */
+  const quote = toReferenceQuote(
+    legacyPrice,
+  );
 
   validateTradingQuote(quote);
 

@@ -1,4 +1,8 @@
-import type { MarketPriceResponse } from "./types.js";
+import {
+  assertExecutableQuote,
+  type ExecutionQuote,
+  type ReferenceQuote,
+} from "./quote-contract.js";
 
 export const MAX_TRADING_QUOTE_AGE_MS = 5_000;
 
@@ -10,10 +14,10 @@ export class TradingQuoteError extends Error {
 }
 
 export function validateTradingQuote(
-  quote: MarketPriceResponse,
+  quote: ReferenceQuote,
   maxAgeMs = MAX_TRADING_QUOTE_AGE_MS,
   now = Date.now(),
-): void {
+): asserts quote is ExecutionQuote {
   if (
     !Number.isSafeInteger(maxAgeMs) ||
     maxAgeMs < 1
@@ -29,33 +33,35 @@ export function validateTradingQuote(
     );
   }
 
-  const bid = Number(quote.bid);
-  const ask = Number(quote.ask);
-  const last = Number(quote.last);
-
-  if (
-    !Number.isFinite(bid) ||
-    !Number.isFinite(ask) ||
-    !Number.isFinite(last) ||
-    bid <= 0 ||
-    ask <= 0 ||
-    last <= 0 ||
-    bid > ask
-  ) {
+  try {
+    assertExecutableQuote(quote);
+  } catch {
     throw new TradingQuoteError(
-      "Invalid trading quote prices",
+      "Invalid or non-executable trading quote",
     );
   }
 
-  const timestamp = Date.parse(quote.timestamp);
+  /*
+   * Current PAPER execution freshness is measured from receivedAt.
+   *
+   * receivedAt means our backend receipt/construction time.
+   * It must NOT be interpreted as a trustworthy upstream source
+   * timestamp.
+   *
+   * A future LIVE execution provider requires an explicit source
+   * trust policy before LIVE execution is enabled.
+   */
+  const receivedAt = Date.parse(
+    quote.receivedAt,
+  );
 
   if (
-    !Number.isFinite(timestamp) ||
-    timestamp > now + 1_000 ||
-    now - timestamp > maxAgeMs
+    !Number.isFinite(receivedAt) ||
+    receivedAt > now + 1_000 ||
+    now - receivedAt > maxAgeMs
   ) {
     throw new TradingQuoteError(
-      "Trading quote is stale or has an invalid timestamp",
+      "Trading quote is stale or has an invalid receipt timestamp",
     );
   }
 }
