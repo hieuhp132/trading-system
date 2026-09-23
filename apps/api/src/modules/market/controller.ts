@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 
-import { getMarketCandles, getMarketPrice } from "./service.js";
+import { getMarketCandles, getReferenceQuote } from "./service.js";
 
 import type { CandleInterval } from "./types.js";
 
@@ -13,17 +13,29 @@ export async function getPrice(req: Request, res: Response): Promise<void> {
   const symbol =
     typeof req.query.symbol === "string" ? req.query.symbol : "XAUUSD";
 
-  const price = await getMarketPrice(symbol);
+  const price = await getReferenceQuote(symbol);
 
   res.status(200).json({
     success: true,
     data: {
-      ...price,
+      symbol: price.symbol,
+      bid: price.bid,
+      ask: price.ask,
+      last: price.last,
+      source: price.source,
+
+      /*
+       * Transitional HTTP compatibility.
+       * ReferenceQuote intentionally has no legacy timestamp.
+       */
+      timestamp: price.receivedAt,
+
       metadata: {
-        receivedAt: price.timestamp,
-        sourceTimestamp: null,
-        bidAskType: "SYNTHETIC",
-        executable: price.source === "demo",
+        receivedAt: price.receivedAt,
+        sourceTimestamp: price.sourceTimestamp,
+        bidAskType: price.bidAskType,
+        executable:
+          price.executionCapability !== "NONE",
       },
     },
   });

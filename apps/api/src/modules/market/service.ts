@@ -1,5 +1,11 @@
 import { toReferenceQuote } from "./quote-adapter.js";
-import type { ExecutionQuote } from "./quote-contract.js";
+import {
+  ReferenceQuoteCache,
+} from "./reference-quote-cache.js";
+import type {
+  ExecutionQuote,
+  ReferenceQuote,
+} from "./quote-contract.js";
 import type {
   CandleInterval,
   MarketCandlesResponse,
@@ -33,6 +39,9 @@ function createMarketDataProvider(): MarketDataProvider {
 
 const provider = createMarketDataProvider();
 
+const referenceQuoteCache =
+  new ReferenceQuoteCache();
+
 /**
  * Fail closed until the active provider supplies a verifiable source quote.
  * Must run before database writes or external price requests.
@@ -51,6 +60,47 @@ export async function getMarketPrice(
   symbol: string,
 ): Promise<MarketPriceResponse> {
   return provider.getPrice(symbol);
+}
+
+export async function getReferenceQuote(
+  symbol: string,
+): Promise<ReferenceQuote> {
+  const legacyPrice =
+    await getMarketPrice(symbol);
+
+  const adapted =
+    toReferenceQuote(legacyPrice);
+
+  /*
+   * Keep the reference boundary structurally pure.
+   * The demo adapter may carry the transitional
+   * ExecutionQuote `timestamp`; do not propagate it.
+   */
+  const quote: ReferenceQuote = {
+    symbol: adapted.symbol,
+    bid: adapted.bid,
+    ask: adapted.ask,
+    last: adapted.last,
+    source: adapted.source,
+    sourceTimestamp: adapted.sourceTimestamp,
+    receivedAt: adapted.receivedAt,
+    bidAskType: adapted.bidAskType,
+    executionCapability:
+      adapted.executionCapability,
+  };
+
+  referenceQuoteCache.set(quote);
+
+  return quote;
+}
+
+export function getCachedReferenceQuote(
+  symbol: string,
+): ReferenceQuote | null {
+  return (
+    referenceQuoteCache.get(symbol)?.quote ??
+    null
+  );
 }
 
 export async function getTradingQuote(
