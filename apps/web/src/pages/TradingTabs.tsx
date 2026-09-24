@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { useMarketStreamStatus } from "../features/market/MarketStreamBridge";
+import { getMarketFreshnessDisplayState } from "../features/market/marketFreshnessDisplayState";
 import { getMarketPrice, type CandleInterval } from "../features/market/api";
 import { XAUUSDChart } from "../features/market/components/XAUUSDChart";
 import { TradingOrderPanel } from "../features/orders/components/TradingOrderPanel";
@@ -84,7 +85,16 @@ export function MarketPage() {
 }
 
 export function TradePage() {
-  const { connected: marketStreamConnected } = useMarketStreamStatus();
+  const {
+    connected: marketStreamConnected,
+    freshness: marketFreshness,
+  } = useMarketStreamStatus();
+
+  const marketFreshnessDisplay =
+    getMarketFreshnessDisplayState({
+      connected: marketStreamConnected,
+      freshness: marketFreshness,
+    });
   const marketQuery = useQuery({
     queryKey: ["market", "XAUUSD"],
     queryFn: () => getMarketPrice("XAUUSD"),
@@ -107,6 +117,21 @@ export function TradePage() {
         title="Trade"
         description="Đặt lệnh bằng tài khoản demo."
       />
+
+      <p
+        className={`app-market-freshness app-market-freshness--${marketFreshnessDisplay.toLowerCase()}`}
+        role="status"
+        aria-label={`Market data status: ${marketFreshnessDisplay}`}
+      >
+        Market data:{" "}
+        {marketFreshnessDisplay === "LIVE"
+          ? "Live"
+          : marketFreshnessDisplay === "STALE"
+            ? "Stale"
+            : marketFreshnessDisplay === "DISCONNECTED"
+              ? "Disconnected"
+              : "Waiting"}
+      </p>
       {market && !canTrade && (
         <p role="status">
           Giá {market.source} chỉ dùng để tham khảo.

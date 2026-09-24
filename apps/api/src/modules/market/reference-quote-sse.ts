@@ -1,4 +1,7 @@
 import type {
+  ReferenceQuoteFreshnessResult,
+} from "./reference-quote-freshness.js";
+import type {
   ReferenceQuote,
 } from "./quote-contract.js";
 
@@ -63,6 +66,54 @@ export function serializeReferenceQuoteSseEvent(
 ): string {
   const message =
     createReferenceQuoteSseEvent(quote);
+
+  return (
+    `event: ${message.event}\n` +
+    `data: ${JSON.stringify(message.data)}\n\n`
+  );
+}
+export interface ReferenceQuoteFreshnessSsePayload
+  extends ReferenceQuoteFreshnessResult {
+  symbol: string;
+}
+
+export interface ReferenceQuoteFreshnessSseEvent {
+  event: "freshness";
+  data: ReferenceQuoteFreshnessSsePayload;
+}
+
+export function createReferenceQuoteFreshnessSseEvent(
+  symbol: string,
+  freshness: ReferenceQuoteFreshnessResult,
+): ReferenceQuoteFreshnessSseEvent {
+  const normalizedSymbol =
+    symbol.trim().toUpperCase();
+
+  if (!normalizedSymbol) {
+    throw new Error(
+      "Reference quote freshness symbol must not be empty",
+    );
+  }
+
+  return {
+    event: "freshness",
+    data: {
+      symbol: normalizedSymbol,
+      status: freshness.status,
+      ageMs: freshness.ageMs,
+    },
+  };
+}
+
+export function serializeReferenceQuoteFreshnessSseEvent(
+  symbol: string,
+  freshness: ReferenceQuoteFreshnessResult,
+): string {
+  const message =
+    createReferenceQuoteFreshnessSseEvent(
+      symbol,
+      freshness,
+    );
 
   return (
     `event: ${message.event}\n` +

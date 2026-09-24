@@ -11,7 +11,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { MarketPrice } from "./api";
 import {
   getMarketStreamUrl,
+  parseMarketFreshnessEvent,
   parseMarketPriceEvent,
+  type MarketFreshnessEvent,
 } from "./stream";
 
 const MARKET_SYMBOL = "XAUUSD";
@@ -21,11 +23,13 @@ export const MARKET_PRICE_QUERY_KEY =
 
 interface MarketStreamState {
   connected: boolean;
+  freshness: MarketFreshnessEvent | null;
 }
 
 const MarketStreamContext =
   createContext<MarketStreamState>({
     connected: false,
+    freshness: null,
   });
 
 export function useMarketStreamStatus(): MarketStreamState {
@@ -38,6 +42,9 @@ export function MarketStreamBridge({
   const queryClient = useQueryClient();
   const [connected, setConnected] =
     useState(false);
+
+  const [freshness, setFreshness] =
+    useState<MarketFreshnessEvent | null>(null);
 
   useEffect(() => {
     if (typeof EventSource === "undefined") {
@@ -89,6 +96,29 @@ export function MarketStreamBridge({
       }
     }
 
+    function handleFreshness(
+      event: MessageEvent<string>,
+    ): void {
+      try {
+        const nextFreshness =
+          parseMarketFreshnessEvent(
+            event.data,
+          );
+
+        setFreshness(nextFreshness);
+      } catch (error) {
+        /*
+         * Payload validity and transport health are
+         * independent. Keep the last valid freshness
+         * state when one malformed event arrives.
+         */
+        console.error(
+          "[market-stream] invalid freshness event",
+          error,
+        );
+      }
+    }
+
     eventSource.addEventListener(
       "open",
       handleOpen,
@@ -97,6 +127,11 @@ export function MarketStreamBridge({
     eventSource.addEventListener(
       "quote",
       handleQuote as EventListener,
+    );
+
+    eventSource.addEventListener(
+      "freshness",
+      handleFreshness as EventListener,
     );
 
     eventSource.addEventListener(
@@ -116,6 +151,11 @@ export function MarketStreamBridge({
       );
 
       eventSource.removeEventListener(
+        "freshness",
+        handleFreshness as EventListener,
+      );
+
+      eventSource.removeEventListener(
         "error",
         handleError,
       );
@@ -126,8 +166,14 @@ export function MarketStreamBridge({
 
   const value =
     useMemo(
-      () => ({ connected }),
-      [connected],
+      () => ({
+        connected,
+        freshness,
+      }),
+      [
+        connected,
+        freshness,
+      ],
     );
 
   return (

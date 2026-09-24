@@ -3,6 +3,7 @@ import { ArrowUpRight, ArrowDownRight, Wallet } from "lucide-react";
 
 import { getAccountBalance } from "../features/account/api";
 import { useMarketStreamStatus } from "../features/market/MarketStreamBridge";
+import { getMarketFreshnessDisplayState } from "../features/market/marketFreshnessDisplayState";
 import { getMarketPrice } from "../features/market/api";
 import { useAuthStore } from "../stores/auth";
 
@@ -13,7 +14,16 @@ const money = (value: string | number) =>
   }).format(Number(value));
 
 export function DashboardPage() {
-  const { connected: marketStreamConnected } = useMarketStreamStatus();
+  const {
+    connected: marketStreamConnected,
+    freshness: marketFreshness,
+  } = useMarketStreamStatus();
+
+  const marketFreshnessDisplay =
+    getMarketFreshnessDisplayState({
+      connected: marketStreamConnected,
+      freshness: marketFreshness,
+    });
   const user = useAuthStore((state) => state.user);
 
   const accountQuery = useQuery({
@@ -112,15 +122,31 @@ export function DashboardPage() {
             <p className="app-eyebrow">MARKET SNAPSHOT</p>
             <h2>XAUUSD</h2>
           </div>
-          <span className="app-demo-badge">
-            {marketQuery.isError
-              ? "Offline"
-              : !market
-                ? "Loading"
-                : market.metadata.executable
-                  ? "Demo"
-                  : "Reference only"}
-          </span>
+          <div className="app-market-badges">
+            <span className="app-demo-badge">
+              {marketQuery.isError
+                ? "Offline"
+                : !market
+                  ? "Loading"
+                  : market.metadata.executable
+                    ? "Demo"
+                    : "Reference only"}
+            </span>
+
+            <span
+              className={`app-market-freshness app-market-freshness--${marketFreshnessDisplay.toLowerCase()}`}
+              role="status"
+              aria-label={`Market data status: ${marketFreshnessDisplay}`}
+            >
+              {marketFreshnessDisplay === "LIVE"
+                ? "Live"
+                : marketFreshnessDisplay === "STALE"
+                  ? "Stale"
+                  : marketFreshnessDisplay === "DISCONNECTED"
+                    ? "Disconnected"
+                    : "Waiting"}
+            </span>
+          </div>
         </div>
 
         <div className="app-quote-grid">

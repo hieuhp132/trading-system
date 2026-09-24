@@ -136,3 +136,88 @@ export function parseMarketPriceEvent(
     },
   };
 }
+
+export type MarketDataFreshness =
+  | "FRESH"
+  | "STALE"
+  | "MISSING";
+
+export interface MarketFreshnessEvent {
+  symbol: string;
+  status: MarketDataFreshness;
+  ageMs: number | null;
+}
+
+export function parseMarketFreshnessEvent(
+  rawData: string,
+): MarketFreshnessEvent {
+  const parsed: unknown =
+    JSON.parse(rawData);
+
+  if (!isRecord(parsed)) {
+    throw new Error(
+      "Invalid market freshness payload",
+    );
+  }
+
+  const symbol =
+    typeof parsed.symbol === "string"
+      ? parsed.symbol.trim().toUpperCase()
+      : "";
+
+  const status =
+    parsed.status;
+
+  const ageMs =
+    parsed.ageMs;
+
+  if (
+    !symbol ||
+    (
+      status !== "FRESH" &&
+      status !== "STALE" &&
+      status !== "MISSING"
+    ) ||
+    !(
+      ageMs === null ||
+      (
+        typeof ageMs === "number" &&
+        Number.isFinite(ageMs) &&
+        Number.isSafeInteger(ageMs) &&
+        ageMs >= 0
+      )
+    )
+  ) {
+    throw new Error(
+      "Invalid market freshness payload",
+    );
+  }
+
+  /*
+   * MISSING has no quote timestamp, therefore it must not
+   * carry an age.
+   *
+   * FRESH/STALE describe an existing cached quote and must
+   * carry its non-negative age.
+   */
+  if (
+    (
+      status === "MISSING" &&
+      ageMs !== null
+    ) ||
+    (
+      status !== "MISSING" &&
+      ageMs === null
+    )
+  ) {
+    throw new Error(
+      "Invalid market freshness payload",
+    );
+  }
+
+  return {
+    symbol,
+    status,
+    ageMs,
+  };
+}

@@ -526,3 +526,47 @@
 }
 
 /* GOLD TRADING DARK NAVY THEME END */
+
+.app-market-badges {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.app-market-freshness {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 6px 10px;
+  border: 1px solid var(--app-border);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.app-market-freshness--live {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.28);
+  color: #16a34a;
+}
+
+.app-market-freshness--stale {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #d97706;
+}
+
+.app-market-freshness--waiting {
+  background: rgba(100, 116, 139, 0.12);
+  border-color: rgba(100, 116, 139, 0.3);
+  color: #64748b;
+}
+
+.app-market-freshness--disconnected {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.28);
+  color: #dc2626;
+}

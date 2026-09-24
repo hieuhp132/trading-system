@@ -7,8 +7,13 @@ import {
 } from "./service.js";
 
 import {
+  serializeReferenceQuoteFreshnessSseEvent,
   serializeReferenceQuoteSseEvent,
 } from "./reference-quote-sse.js";
+
+import {
+  getReferenceQuoteFreshness,
+} from "./reference-quote-freshness.js";
 
 import type { CandleInterval } from "./types.js";
 
@@ -16,6 +21,8 @@ const VALID_INTERVALS: CandleInterval[] = ["1m", "5m", "15m", "1h"];
 
 const DEFAULT_LIMIT = 100;
 const MAX_LIMIT = 500;
+
+const REFERENCE_QUOTE_STALE_AFTER_MS = 5_000;
 
 export async function getPrice(req: Request, res: Response): Promise<void> {
   const symbol =
@@ -89,36 +96,67 @@ export function streamReferenceQuote(
 
   let lastReceivedAt: string | null = null;
 
-  function emitLatest(): void {
+  let lastFreshnessStatus:
+    | "FRESH"
+    | "STALE"
+    | "MISSING"
+    | null = null;
+
+  function observeReferenceQuote(): void {
     const quote =
       getCachedReferenceQuote(symbol);
 
-    if (!quote) {
+    if (
+      quote &&
+      quote.receivedAt !== lastReceivedAt
+    ) {
+      lastReceivedAt = quote.receivedAt;
+
+      res.write(
+        serializeReferenceQuoteSseEvent(quote),
+      );
+    }
+
+    const freshness =
+      getReferenceQuoteFreshness(
+        quote,
+        Date.now(),
+        {
+          staleAfterMs:
+            REFERENCE_QUOTE_STALE_AFTER_MS,
+        },
+      );
+
+    if (
+      freshness.status ===
+      lastFreshnessStatus
+    ) {
       return;
     }
 
-    if (quote.receivedAt === lastReceivedAt) {
-      return;
-    }
-
-    lastReceivedAt = quote.receivedAt;
+    lastFreshnessStatus =
+      freshness.status;
 
     res.write(
-      serializeReferenceQuoteSseEvent(quote),
+      serializeReferenceQuoteFreshnessSseEvent(
+        symbol,
+        freshness,
+      ),
     );
   }
 
   /*
-   * Send the current cached snapshot immediately when available.
+   * Send current quote when available and always
+   * send the current freshness state immediately.
    *
    * Important:
    * this endpoint never requests the provider itself.
    */
-  emitLatest();
+  observeReferenceQuote();
 
   const quoteTimer =
     setInterval(
-      emitLatest,
+      observeReferenceQuote,
       250,
     );
 
