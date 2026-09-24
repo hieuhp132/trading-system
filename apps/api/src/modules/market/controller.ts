@@ -1,6 +1,14 @@
 import type { Request, Response } from "express";
 
-import { getMarketCandles, getReferenceQuote } from "./service.js";
+import {
+  getCachedReferenceQuote,
+  getMarketCandles,
+  getReferenceQuote,
+} from "./service.js";
+
+import {
+  serializeReferenceQuoteSseEvent,
+} from "./reference-quote-sse.js";
 
 import type { CandleInterval } from "./types.js";
 
@@ -41,6 +49,100 @@ export async function getPrice(req: Request, res: Response): Promise<void> {
   });
 }
 
+export function streamReferenceQuote(
+  req: Request,
+  res: Response,
+): void {
+  const symbol =
+    typeof req.query.symbol === "string"
+      ? req.query.symbol.trim().toUpperCase()
+      : "XAUUSD";
+
+  if (!symbol) {
+    res.status(400).json({
+      success: false,
+      message: "Symbol không hợp lệ.",
+      code: "INVALID_MARKET_SYMBOL",
+    });
+
+    return;
+  }
+
+  res.status(200);
+
+  res.setHeader(
+    "Content-Type",
+    "text/event-stream; charset=utf-8",
+  );
+
+  res.setHeader(
+    "Cache-Control",
+    "no-cache, no-transform",
+  );
+
+  res.setHeader(
+    "Connection",
+    "keep-alive",
+  );
+
+  res.flushHeaders?.();
+
+  let lastReceivedAt: string | null = null;
+
+  function emitLatest(): void {
+    const quote =
+      getCachedReferenceQuote(symbol);
+
+    if (!quote) {
+      return;
+    }
+
+    if (quote.receivedAt === lastReceivedAt) {
+      return;
+    }
+
+    lastReceivedAt = quote.receivedAt;
+
+    res.write(
+      serializeReferenceQuoteSseEvent(quote),
+    );
+  }
+
+  /*
+   * Send the current cached snapshot immediately when available.
+   *
+   * Important:
+   * this endpoint never requests the provider itself.
+   */
+  emitLatest();
+
+  const quoteTimer =
+    setInterval(
+      emitLatest,
+      250,
+    );
+
+  const heartbeatTimer =
+    setInterval(() => {
+      res.write(": heartbeat\n\n");
+    }, 15_000);
+
+  let closed = false;
+
+  function cleanup(): void {
+    if (closed) {
+      return;
+    }
+
+    closed = true;
+
+    clearInterval(quoteTimer);
+    clearInterval(heartbeatTimer);
+  }
+
+  req.on("close", cleanup);
+  req.on("aborted", cleanup);
+}
 export async function getCandles(req: Request, res: Response): Promise<void> {
   const symbol =
     typeof req.query.symbol === "string" ? req.query.symbol : "XAUUSD";

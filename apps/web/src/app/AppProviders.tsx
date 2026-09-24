@@ -1,6 +1,8 @@
 import type { PropsWithChildren } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
+import { MarketStreamBridge } from "../features/market/MarketStreamBridge";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -12,6 +14,10 @@ const queryClient = new QueryClient({
 
 export function AppProviders({ children }: PropsWithChildren) {
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <MarketStreamBridge>
+        {children}
+      </MarketStreamBridge>
+    </QueryClientProvider>
   );
 }

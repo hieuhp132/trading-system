@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
+import { useMarketStreamStatus } from "../features/market/MarketStreamBridge";
 import { getMarketPrice, type CandleInterval } from "../features/market/api";
 import { XAUUSDChart } from "../features/market/components/XAUUSDChart";
 import { TradingOrderPanel } from "../features/orders/components/TradingOrderPanel";
@@ -83,10 +84,11 @@ export function MarketPage() {
 }
 
 export function TradePage() {
+  const { connected: marketStreamConnected } = useMarketStreamStatus();
   const marketQuery = useQuery({
     queryKey: ["market", "XAUUSD"],
     queryFn: () => getMarketPrice("XAUUSD"),
-    refetchInterval: 2000,
+    refetchInterval: marketStreamConnected ? false : 2000,
   });
 
   const market = marketQuery.data;

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, ArrowDownRight, Wallet } from "lucide-react";
 
 import { getAccountBalance } from "../features/account/api";
+import { useMarketStreamStatus } from "../features/market/MarketStreamBridge";
 import { getMarketPrice } from "../features/market/api";
 import { useAuthStore } from "../stores/auth";
 
@@ -12,6 +13,7 @@ const money = (value: string | number) =>
   }).format(Number(value));
 
 export function DashboardPage() {
+  const { connected: marketStreamConnected } = useMarketStreamStatus();
   const user = useAuthStore((state) => state.user);
 
   const accountQuery = useQuery({
@@ -23,7 +25,7 @@ export function DashboardPage() {
   const marketQuery = useQuery({
     queryKey: ["market", "XAUUSD"],
     queryFn: () => getMarketPrice("XAUUSD"),
-    refetchInterval: 2000,
+    refetchInterval: marketStreamConnected ? false : 2000,
   });
 
   const account = accountQuery.data;
