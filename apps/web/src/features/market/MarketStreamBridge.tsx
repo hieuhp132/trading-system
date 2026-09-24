@@ -15,6 +15,7 @@ import {
   parseMarketPriceEvent,
   type MarketFreshnessEvent,
 } from "./stream";
+import { getFreshnessAfterStreamOpen } from "./marketStreamFreshnessLifecycle";
 
 const MARKET_SYMBOL = "XAUUSD";
 
@@ -59,6 +60,7 @@ export function MarketStreamBridge({
 
     function handleOpen(): void {
       setConnected(true);
+      setFreshness(getFreshnessAfterStreamOpen);
     }
 
     function handleError(): void {
