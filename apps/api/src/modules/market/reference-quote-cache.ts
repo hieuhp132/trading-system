@@ -30,8 +30,21 @@ export class ReferenceQuoteCache {
     const symbol =
       this.normalizeSymbol(quote.symbol);
 
+    const canonicalQuote: ReferenceQuote = {
+      symbol,
+      bid: quote.bid,
+      ask: quote.ask,
+      last: quote.last,
+      source: quote.source,
+      sourceTimestamp: quote.sourceTimestamp,
+      receivedAt: quote.receivedAt,
+      bidAskType: quote.bidAskType,
+      executionCapability:
+        quote.executionCapability,
+    };
+
     this.entries.set(symbol, {
-      quote: { ...quote },
+      quote: canonicalQuote,
       cachedAt,
     });
   }

@@ -2,6 +2,9 @@ import { toReferenceQuote } from "./quote-adapter.js";
 import {
   ReferenceQuoteCache,
 } from "./reference-quote-cache.js";
+import {
+  createReferenceQuoteFeed,
+} from "./reference-quote-feed.js";
 import type {
   ExecutionQuote,
   ReferenceQuote,
@@ -62,7 +65,7 @@ export async function getMarketPrice(
   return provider.getPrice(symbol);
 }
 
-export async function getReferenceQuote(
+async function fetchReferenceQuote(
   symbol: string,
 ): Promise<ReferenceQuote> {
   const legacyPrice =
@@ -76,7 +79,7 @@ export async function getReferenceQuote(
    * The demo adapter may carry the transitional
    * ExecutionQuote `timestamp`; do not propagate it.
    */
-  const quote: ReferenceQuote = {
+  return {
     symbol: adapted.symbol,
     bid: adapted.bid,
     ask: adapted.ask,
@@ -88,10 +91,39 @@ export async function getReferenceQuote(
     executionCapability:
       adapted.executionCapability,
   };
+}
+
+const referenceQuoteFeed =
+  createReferenceQuoteFeed(
+    {
+      fetchQuote: fetchReferenceQuote,
+      cache: referenceQuoteCache,
+      onError(error) {
+        console.error(
+          "[market-reference-feed] refresh failed",
+          error,
+        );
+      },
+    },
+    {
+      symbol: "XAUUSD",
+      intervalMs: 2_000,
+    },
+  );
+
+export async function getReferenceQuote(
+  symbol: string,
+): Promise<ReferenceQuote> {
+  const quote =
+    await fetchReferenceQuote(symbol);
 
   referenceQuoteCache.set(quote);
 
   return quote;
+}
+
+export function getReferenceQuoteFeed() {
+  return referenceQuoteFeed;
 }
 
 export function getCachedReferenceQuote(

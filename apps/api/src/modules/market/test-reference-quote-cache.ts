@@ -253,6 +253,50 @@ const tests: TestCase[] = [
   },
 
   {
+    name: "cache strips runtime compatibility timestamp",
+    run: () => {
+      const cache =
+        new ReferenceQuoteCache();
+
+      const quoteWithRuntimeExtra = {
+        ...createQuote(),
+        timestamp:
+          "2026-09-24T10:00:00.000Z",
+      };
+
+      cache.set(
+        quoteWithRuntimeExtra,
+        cachedAt,
+      );
+
+      const entry =
+        cache.get("XAUUSD");
+
+      assert.ok(entry);
+
+      assert.equal(
+        "timestamp" in entry.quote,
+        false,
+        "Reference cache must strip runtime-only compatibility fields",
+      );
+
+      assert.deepEqual(
+        Object.keys(entry.quote).sort(),
+        [
+          "ask",
+          "bid",
+          "bidAskType",
+          "executionCapability",
+          "last",
+          "receivedAt",
+          "source",
+          "sourceTimestamp",
+          "symbol",
+        ].sort(),
+      );
+    },
+  },
+  {
     name: "delete removes one symbol",
     run: () => {
       const cache =

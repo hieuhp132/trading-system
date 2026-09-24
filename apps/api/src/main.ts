@@ -6,6 +6,7 @@ import { db } from "./database/prisma.js";
 import { createStopWorker } from "./modules/orders/stop-worker.js";
 import { createLimitWorker } from "./modules/orders/limit-worker.js";
 import { createStopOutWorker } from "./modules/orders/stop-out-worker.js";
+import { getReferenceQuoteFeed } from "./modules/market/service.js";
 
 function readPositiveInteger(name: string, fallback: number): number {
   const raw = process.env[name];
@@ -28,6 +29,9 @@ function isEnabled(name: string): boolean {
 }
 
 const port = Number(process.env.PORT ?? 4000);
+
+const referenceQuoteFeed =
+  getReferenceQuoteFeed();
 
 // --------------------------------------------------
 // Stop Worker
@@ -68,10 +72,26 @@ const stopOutWorker = isEnabled("STOP_OUT_WORKER_ENABLED")
 
 let shuttingDown = false;
 
-const server = app.listen(port, () => {
-  console.log(`Trading System API running on http://localhost:${port}`);
+async function startBackgroundServices(): Promise<void> {
+  try {
+    await referenceQuoteFeed.refresh();
 
-  if (stopWorker && !shuttingDown) {
+    console.log("Reference quote feed warmed up");
+  } catch (error) {
+    console.error(
+      "Reference quote feed warm-up failed:",
+      error,
+    );
+  }
+
+  if (shuttingDown) {
+    return;
+  }
+
+  referenceQuoteFeed.start();
+  console.log("Reference quote feed started");
+
+  if (stopWorker) {
     stopWorker.start();
 
     console.log("SL/TP stop worker started");
@@ -79,7 +99,7 @@ const server = app.listen(port, () => {
     console.log("SL/TP stop worker disabled");
   }
 
-  if (limitWorker && !shuttingDown) {
+  if (limitWorker) {
     limitWorker.start();
 
     console.log("Limit worker started");
@@ -87,13 +107,30 @@ const server = app.listen(port, () => {
     console.log("Limit worker disabled");
   }
 
-  if (stopOutWorker && !shuttingDown) {
+  if (stopOutWorker) {
     stopOutWorker.start();
 
     console.log("Stop-Out worker started");
   } else {
     console.log("Stop-Out worker disabled");
   }
+}
+
+const server = app.listen(port, () => {
+  console.log(
+    `Trading System API running on http://localhost:${port}`,
+  );
+
+  void startBackgroundServices().catch((error) => {
+    console.error(
+      "Background service startup failed:",
+      error,
+    );
+
+    process.exitCode = 1;
+
+    void shutdown("BACKGROUND_SERVICE_ERROR");
+  });
 });
 
 server.on("error", (error: NodeJS.ErrnoException) => {
@@ -140,6 +177,7 @@ async function shutdown(signal: string): Promise<void> {
   // Wait until HTTP and all workers have stopped
   // before closing the shared database connection.
   const results = await Promise.allSettled([
+    referenceQuoteFeed.stop(),
     stopWorker?.stop() ?? Promise.resolve(),
     limitWorker?.stop() ?? Promise.resolve(),
     stopOutWorker?.stop() ?? Promise.resolve(),
