@@ -1,6 +1,7 @@
 import { db } from "../../database/prisma.js";
 import { XAUUSD_SPEC } from "../../common/constants/xauusd.js";
 import { getTradingQuote } from "../market/service.js";
+import { isMarketClosedError } from "../market/market-hours.js";
 
 import type { MarketPriceResponse } from "../market/types.js";
 
@@ -67,6 +68,19 @@ export const defaultLimitWorkerDependencies: LimitWorkerDependencies = {
   execute: executePendingLimitOrder,
 
   logError(error, context) {
+    if (isMarketClosedError(error)) {
+      return;
+    }
+
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      (error as { code?: string }).code === "TRADING_QUOTE_STALE"
+    ) {
+      return;
+    }
+
     console.error(`[limit-worker] ${context}`, error);
   },
 };
@@ -80,7 +94,7 @@ export function createLimitWorker(
   } = {},
 ) {
   const intervalMs = options.intervalMs ?? 1000;
-  const maxQuoteAgeMs = options.maxQuoteAgeMs ?? 5000;
+  const maxQuoteAgeMs = options.maxQuoteAgeMs ?? 60_000;
   const now = options.now ?? Date.now;
   if (!Number.isInteger(intervalMs) || intervalMs < 100) {
     throw new Error("LIMIT_WORKER_INTERVAL_MS must be an integer >= 100");
@@ -99,6 +113,8 @@ export function createLimitWorker(
   // Cooldown is local to this worker instance.
   // It does not change the Order status in PostgreSQL.
   const retryAfter = new Map<string, number>();
+
+  let lastStaleTickLogAt = 0;
 
   async function tick(): Promise<void> {
     if (stopping || running) {
@@ -131,9 +147,22 @@ export function createLimitWorker(
         return;
       }
 
-      const quote = await dependencies.getQuote();
+      let quote: MarketPriceResponse;
 
-      validateWorkerQuote(quote, maxQuoteAgeMs);
+      try {
+        quote = await dependencies.getQuote();
+        validateWorkerQuote(quote, maxQuoteAgeMs);
+      } catch (err) {
+        const ts = Date.now();
+        if (ts - lastStaleTickLogAt >= 30_000) {
+          lastStaleTickLogAt = ts;
+          dependencies.logError(
+            err,
+            "tick: skipping orders due to stale/invalid quote",
+          );
+        }
+        return;
+      }
 
       for (const order of eligibleOrders) {
         if (stopping) {
@@ -141,6 +170,32 @@ export function createLimitWorker(
         }
 
         try {
+          /*
+           * Refresh shared quote when it has aged past half
+           * the allowed window. Keeps limit trigger evaluation
+           * and execution prices fresh across long loops.
+           */
+          const refreshThreshold = maxQuoteAgeMs >> 1;
+          const quoteAny = quote as MarketPriceResponse & {
+            receivedAt?: string;
+          };
+          const tsRaw = quoteAny.receivedAt ?? quote.timestamp;
+          const ts = Date.parse(tsRaw);
+          const currentNow = now();
+          if (
+            !Number.isFinite(ts) ||
+            currentNow - ts > refreshThreshold
+          ) {
+            const refreshed =
+              await dependencies.getQuote();
+            validateWorkerQuote(
+              refreshed,
+              maxQuoteAgeMs,
+              currentNow,
+            );
+            quote = refreshed;
+          }
+
           const trigger = evaluateLimitTrigger(
             {
               orderType: order.orderType,

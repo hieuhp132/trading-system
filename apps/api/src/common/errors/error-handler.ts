@@ -2,6 +2,7 @@ import type { ErrorRequestHandler } from "express";
 import { ZodError } from "zod";
 
 import { AppError } from "./app-error.js";
+import { TradingQuoteError } from "../../modules/market/trading-quote.js";
 
 export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
   /*
@@ -37,6 +38,19 @@ export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
         code: error.code,
         message: error.message,
         ...(error.details !== undefined ? { details: error.details } : {}),
+      },
+    });
+
+    return;
+  }
+
+  if (error instanceof TradingQuoteError) {
+    res.status(503).json({
+      success: false,
+      error: {
+        code: "TRADING_QUOTE_STALE",
+        message:
+          "Giá thị trường quá cũ để đặt lệnh hoặc chỉnh SL/TP. Vui lòng thử lại khi dữ liệu còn mới.",
       },
     });
 

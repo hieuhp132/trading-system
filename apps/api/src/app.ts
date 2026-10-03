@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
+import compression from "compression";
 
 import { errorHandler } from "./common/errors/error-handler.js";
 import { notFoundHandler } from "./common/middleware/not-found-handler.js";
@@ -17,6 +18,7 @@ app.disable("x-powered-by");
 
 app.use(helmet());
 app.use(cors());
+app.use(compression({ level: 6, threshold: 100_000 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

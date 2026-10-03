@@ -23,6 +23,7 @@ import { validateStopLevels } from "./stop-levels.js";
 import { evaluateStopTrigger } from "./stop-trigger.js";
 import type { MarketPriceResponse } from "../market/types.js";
 import { evaluateLimitTrigger } from "./limit-trigger.js";
+import { isMarketClosedByWeekend } from "../market/market-hours.js";
 
 const ZERO = "0";
 
@@ -116,24 +117,6 @@ function calculatePnl(
   return calculateUnrealizedPnl(side, quantity, entryPrice, currentPrice);
 }
 
-function calculateWeightedAverage(
-  currentQuantity: number,
-  currentAverage: number,
-  addedQuantity: number,
-  addedPrice: number,
-): number {
-  const totalQuantity = currentQuantity + addedQuantity;
-
-  if (totalQuantity === 0) {
-    return 0;
-  }
-
-  return (
-    (currentQuantity * currentAverage + addedQuantity * addedPrice) /
-    totalQuantity
-  );
-}
-
 function toOrderResponse(order: {
   id: string;
   accountId: string;
@@ -149,7 +132,7 @@ function toOrderResponse(order: {
   commission: unknown;
   createdAt: string;
   executedAt: string | null;
-}): CreateOrderResponse {
+}, realizedPnl: string | null = null): CreateOrderResponse {
   return {
     id: order.id,
     accountId: order.accountId,
@@ -167,6 +150,7 @@ function toOrderResponse(order: {
         : formatPrice(Number(order.executedPrice)),
     status: order.status,
     commission: String(order.commission),
+    realizedPnl,
     createdAt: order.createdAt,
     executedAt: order.executedAt,
     stopLoss: order.stopLoss === null ? null : String(order.stopLoss),
@@ -441,26 +425,6 @@ export async function createMarketOrder(
     );
 
     /*
-     * Tìm position cùng chiều đang OPEN.
-     */
-    const existingPosition = await tx.orm.public.Position.where({
-      accountId: account.id,
-      symbol: input.symbol,
-      status: "OPEN",
-      side: positionSide,
-    }).first();
-
-    if (
-      existingPosition &&
-      (input.stopLoss !== undefined || input.takeProfit !== undefined)
-    ) {
-      throw new AppError(
-        "Position đã tồn tại. Hãy cập nhật SL/TP qua endpoint riêng.",
-        400,
-        "POSITION_STOPS_UPDATE_REQUIRED",
-      );
-    }
-    /*
      * ============================================================
      * CREATE ORDER
      * ============================================================
@@ -496,123 +460,33 @@ export async function createMarketOrder(
 
     let responsePosition: OrderExecutionPositionResponse | null = null;
 
-    /*
-     * ============================================================
-     * CASE 1:
-     * Đã có position cùng chiều
-     * ============================================================
-     */
-    if (existingPosition) {
-      const currentQuantity = toNumber(existingPosition.quantity);
+    const newPosition = await tx.orm.public.Position.create({
+      accountId: account.id,
+      symbol: input.symbol,
+      side: positionSide,
+      quantity: input.quantity,
+      averageEntryPrice: formatPrice(normalizedExecutedPrice),
+      currentPrice: formatPrice(normalizedExecutedPrice),
+      unrealizedPnl: ZERO,
+      stopLoss: input.stopLoss ?? null,
+      takeProfit: input.takeProfit ?? null,
+      status: "OPEN",
+    });
 
-      const currentAverage = toNumber(existingPosition.averageEntryPrice);
+    await tx.orm.public.Trade.create({
+      accountId: account.id,
+      orderId: order.id,
+      positionId: newPosition.id,
+      symbol: input.symbol,
+      side: input.side,
+      quantity: input.quantity,
+      entryPrice: formatPrice(normalizedExecutedPrice),
+      exitPrice: null,
+      realizedPnl: null,
+      commission: ZERO,
+    });
 
-      const newQuantity = currentQuantity + quantity;
-
-      const newAverage = calculateWeightedAverage(
-        currentQuantity,
-        currentAverage,
-        quantity,
-        normalizedExecutedPrice,
-      );
-
-      /*
-       * Normalize weighted average để không lưu:
-       *
-       * 3651.2000000000003
-       *
-       * mà lưu:
-       *
-       * 3651.20
-       */
-      const normalizedAverage = Number(formatPrice(newAverage));
-
-      /*
-       * Tại thời điểm order vừa fill,
-       * currentPrice = executedPrice.
-       *
-       * Vì vậy unrealized P&L tại chính thời điểm đó = 0.
-       */
-      const unrealizedPnl = calculatePnl(
-        positionSide,
-        normalizedAverage,
-        normalizedExecutedPrice,
-        newQuantity,
-      );
-
-      const updatedPosition = assertUpdated(
-        await tx.orm.public.Position.where({
-          id: existingPosition.id,
-        }).update({
-          quantity: String(newQuantity),
-          averageEntryPrice: formatPrice(normalizedAverage),
-          currentPrice: formatPrice(normalizedExecutedPrice),
-          unrealizedPnl: formatDecimal(unrealizedPnl),
-        }),
-        "Không thể cập nhật position",
-        "POSITION_UPDATE_FAILED",
-      );
-
-      /*
-       * Mỗi MARKET order vẫn tạo một Trade riêng.
-       *
-       * Đây là OPEN/INCREASE trade,
-       * chưa có exitPrice và realizedPnl.
-       */
-      await tx.orm.public.Trade.create({
-        accountId: account.id,
-        orderId: order.id,
-        positionId: updatedPosition.id,
-        symbol: input.symbol,
-        side: input.side,
-        quantity: input.quantity,
-        entryPrice: formatPrice(normalizedExecutedPrice),
-        exitPrice: null,
-        realizedPnl: null,
-        commission: ZERO,
-      });
-
-      responsePosition = toPositionResponse(updatedPosition);
-    }
-
-    /*
-     * ============================================================
-     * CASE 2:
-     * Chưa có position cùng chiều
-     * ============================================================
-     */
-    else {
-      const newPosition = await tx.orm.public.Position.create({
-        accountId: account.id,
-        symbol: input.symbol,
-        side: positionSide,
-        quantity: input.quantity,
-        averageEntryPrice: formatPrice(normalizedExecutedPrice),
-        currentPrice: formatPrice(normalizedExecutedPrice),
-        unrealizedPnl: ZERO,
-        stopLoss: input.stopLoss ?? null,
-        takeProfit: input.takeProfit ?? null,
-        status: "OPEN",
-      });
-
-      /*
-       * Opening trade.
-       */
-      await tx.orm.public.Trade.create({
-        accountId: account.id,
-        orderId: order.id,
-        positionId: newPosition.id,
-        symbol: input.symbol,
-        side: input.side,
-        quantity: input.quantity,
-        entryPrice: formatPrice(normalizedExecutedPrice),
-        exitPrice: null,
-        realizedPnl: null,
-        commission: ZERO,
-      });
-
-      responsePosition = toPositionResponse(newPosition);
-    }
+    responsePosition = toPositionResponse(newPosition);
 
     /*
      * ============================================================
@@ -674,6 +548,7 @@ export async function createMarketOrder(
         takeProfit: order.takeProfit == null ? null : String(order.takeProfit),
         status: order.status,
         commission: order.commission,
+        realizedPnl: null,
         createdAt: order.createdAt,
         executedAt: order.executedAt,
       },
@@ -693,6 +568,21 @@ export async function createMarketOrder(
   });
 
   return result;
+}
+
+function getRealizedPnl(trades: { realizedPnl: unknown }[]): string | null {
+  const realizedTrades = trades.filter((trade) => trade.realizedPnl != null);
+
+  if (realizedTrades.length === 0) {
+    return null;
+  }
+
+  const total = realizedTrades.reduce(
+    (sum, trade) => sum + Number(trade.realizedPnl),
+    0,
+  );
+
+  return formatDecimal(total);
 }
 
 function assertUpdated<T>(value: T | null, message: string, code: string): T {
@@ -719,13 +609,35 @@ export async function getMyOrders(userId: string): Promise<OrdersListResponse> {
   const orders = await db.orm.public.Order.where({
     accountId: account.id,
   }).all();
+  const trades = await db.orm.public.Trade.where({
+    accountId: account.id,
+  }).all();
+  const realizedPnlByOrderId = new Map<string, number>();
+
+  for (const trade of trades) {
+    if (trade.realizedPnl == null) {
+      continue;
+    }
+
+    realizedPnlByOrderId.set(
+      trade.orderId,
+      (realizedPnlByOrderId.get(trade.orderId) ?? 0) +
+        Number(trade.realizedPnl),
+    );
+  }
 
   const items = orders
     .sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     )
-    .map(toOrderResponse);
+    .map((order) => {
+      const realizedPnl = realizedPnlByOrderId.get(order.id);
+      return toOrderResponse(
+        order,
+        realizedPnl === undefined ? null : formatDecimal(realizedPnl),
+      );
+    });
 
   return {
     items,
@@ -758,7 +670,36 @@ export async function getMyOrder(
     throw new AppError("Order không tồn tại", 404, "ORDER_NOT_FOUND");
   }
 
-  return toOrderResponse(order);
+  const trades = await db.orm.public.Trade.where({
+    accountId: account.id,
+    orderId: order.id,
+  }).all();
+
+  return toOrderResponse(order, getRealizedPnl(trades));
+}
+
+function resolveFixedPositionCurrentPrice(
+  position: {
+    side: "LONG" | "SHORT";
+    currentPrice: unknown;
+    averageEntryPrice: unknown;
+  },
+  marketPrice: MarketPriceResponse | null,
+): number {
+  if (marketPrice) {
+    return position.side === "LONG"
+      ? Number(marketPrice.bid)
+      : Number(marketPrice.ask);
+  }
+
+  const fallbackPrice =
+    position.currentPrice == null
+      ? Number(position.averageEntryPrice)
+      : Number(position.currentPrice);
+
+  return Number.isFinite(fallbackPrice) && fallbackPrice > 0
+    ? fallbackPrice
+    : Number(position.averageEntryPrice);
 }
 
 function toPositionListResponse(position: {
@@ -774,17 +715,16 @@ function toPositionListResponse(position: {
   status: "OPEN" | "CLOSED";
   openedAt: string;
   closedAt: string | null;
-}): PositionResponse {
+}, marketPrice: MarketPriceResponse | null = null): PositionResponse {
+  const currentPrice = resolveFixedPositionCurrentPrice(position, marketPrice);
+
   return {
     id: position.id,
     symbol: position.symbol,
     side: position.side,
     quantity: String(position.quantity),
     averageEntryPrice: formatPrice(Number(position.averageEntryPrice)),
-    currentPrice:
-      position.currentPrice === null
-        ? null
-        : formatPrice(Number(position.currentPrice)),
+    currentPrice: formatPrice(currentPrice),
     unrealizedPnl: formatDecimal(Number(position.unrealizedPnl)),
     stopLoss: position.stopLoss == null ? null : String(position.stopLoss),
     takeProfit:
@@ -817,13 +757,6 @@ export async function getMyPositions(
     accountId: account.id,
   }).all();
 
-  /*
-   * MVP hiện tại chỉ hỗ trợ XAUUSD.
-   *
-   * Market price được lấy realtime từ MarketDataProvider.
-   * GET /positions chỉ đọc dữ liệu và tính toán,
-   * không cập nhật lại database.
-   */
   const marketPrice = await getMarketPrice(XAUUSD_SPEC.symbol);
 
   const items = positions
@@ -834,39 +767,15 @@ export async function getMyPositions(
       const quantity = toNumber(position.quantity);
       const entryPrice = toNumber(position.averageEntryPrice);
 
-      /*
-       * LONG:
-       *   Entry  = ASK
-       *   Current valuation = BID
-       *
-       * SHORT:
-       *   Entry  = BID
-       *   Current valuation = ASK
-       */
-      const currentPrice =
-        position.side === "LONG"
-          ? Number(marketPrice.bid)
-          : Number(marketPrice.ask);
+      let currentPrice = resolveFixedPositionCurrentPrice(position, marketPrice);
+      let unrealizedPnl = Number(position.unrealizedPnl ?? 0);
 
-      if (!Number.isFinite(currentPrice) || currentPrice <= 0) {
-        throw new AppError(
-          "Giá thị trường không hợp lệ",
-          502,
-          "INVALID_MARKET_PRICE",
-        );
+      if (Number.isFinite(currentPrice) && currentPrice > 0) {
+        unrealizedPnl =
+          position.status === "OPEN"
+            ? calculatePnl(position.side, entryPrice, currentPrice, quantity)
+            : 0;
       }
-
-      /*
-       * Position OPEN:
-       *   Tính unrealized PnL realtime.
-       *
-       * Position CLOSED:
-       *   Không còn unrealized PnL.
-       */
-      const unrealizedPnl =
-        position.status === "OPEN"
-          ? calculatePnl(position.side, entryPrice, currentPrice, quantity)
-          : 0;
 
       return {
         id: position.id,
@@ -916,7 +825,9 @@ export async function getMyPosition(
     throw new AppError("Position không tồn tại", 404, "POSITION_NOT_FOUND");
   }
 
-  return toPositionListResponse(position);
+  const marketPrice = await getMarketPrice(XAUUSD_SPEC.symbol);
+
+  return toPositionListResponse(position, marketPrice);
 }
 
 function toTradeResponse(trade: {
@@ -1127,7 +1038,9 @@ interface AutomaticCloseOptions {
 
 function validateAutomaticQuoteFreshness(
   quote: MarketPriceResponse,
-  maxAgeMs = Number(process.env.STOP_WORKER_MAX_QUOTE_AGE_MS ?? 5000),
+  maxAgeMs = Number(
+    process.env.STOP_OUT_WORKER_MAX_QUOTE_AGE_MS ?? 30_000,
+  ),
 ): void {
   if (!Number.isInteger(maxAgeMs) || maxAgeMs < 100) {
     throw new AppError(
@@ -1137,13 +1050,18 @@ function validateAutomaticQuoteFreshness(
     );
   }
 
-  const timestamp = Date.parse(quote.timestamp);
+  const quoteWithMaybeReceivedAt = quote as MarketPriceResponse & {
+    receivedAt?: string;
+  };
+  const freshnessRaw =
+    quoteWithMaybeReceivedAt.receivedAt ?? quote.timestamp;
+  const freshnessTs = Date.parse(freshnessRaw);
   const now = Date.now();
 
   if (
-    !Number.isFinite(timestamp) ||
-    timestamp > now + 1000 ||
-    now - timestamp > maxAgeMs
+    !Number.isFinite(freshnessTs) ||
+    freshnessTs > now + 1000 ||
+    now - freshnessTs > maxAgeMs
   ) {
     throw new AppError(
       "Market quote đã hết hạn hoặc timestamp không hợp lệ",
@@ -1161,15 +1079,6 @@ async function closePositionInternal(
 ) {
   // The active provider, not a caller-supplied source label, controls execution.
   assertTradingExecutionAllowed();
-
-  // Defense in depth: also reject explicitly unverified supplied quotes.
-  if (automatic?.quote.source === "twelve-data") {
-    throw new AppError(
-      "Không thể xác minh thời điểm cập nhật giá Twelve Data tại nguồn",
-      503,
-      "TRADING_QUOTE_UNVERIFIED",
-    );
-  }
 
   const marketPrice =
     automatic?.quote ?? (await getTradingQuote(XAUUSD_SPEC.symbol));
@@ -1190,7 +1099,6 @@ async function closePositionInternal(
       !Number.isFinite(bid) ||
       !Number.isFinite(ask) ||
       bid <= 0 ||
-      ask <= 0 ||
       bid > ask
     ) {
       throw new AppError(
@@ -1214,16 +1122,12 @@ async function closePositionInternal(
       );
     }
 
-    // Phải khóa trước khi đọc balance và các OPEN positions.
     await lockDemoAccount(tx, accountRef.id);
 
-    // Quote có thể hết hạn trong lúc chờ khóa database.
-    // Kiểm tra sau khi lấy khóa, trước mọi thao tác ghi.
     if (automatic) {
       validateAutomaticQuoteFreshness(marketPrice);
     }
 
-    // Đọc lại dữ liệu sau khi lấy được khóa.
     const account = await tx.orm.public.DemoAccount.where({
       id: accountRef.id,
     }).first();
@@ -1274,8 +1178,6 @@ async function closePositionInternal(
         marketPrice,
       );
 
-      // Position vẫn OPEN nhưng giá không còn chạm SL/TP,
-      // hoặc SL/TP đã được người dùng thay đổi.
       if (!trigger.triggered) {
         return null;
       }
@@ -1303,15 +1205,13 @@ async function closePositionInternal(
         },
       );
 
-      // Account đã phục hồi trong lúc chờ account lock.
-      // Không được forced-close nếu không còn STOP_OUT.
       if (risk.state !== "STOP_OUT") {
         return null;
       }
     }
+
     const quantity = toNumber(position.quantity);
     const entryPrice = toNumber(position.averageEntryPrice);
-
     const closeQuantity =
       requestedQuantity === undefined ? quantity : Number(requestedQuantity);
 
@@ -1326,7 +1226,6 @@ async function closePositionInternal(
     validateOrderVolume(closeQuantity);
 
     const volumeStep = XAUUSD_SPEC.volumeStep;
-
     const currentSteps = Math.round(quantity / volumeStep);
     const closeSteps = Math.round(closeQuantity / volumeStep);
 
@@ -1339,19 +1238,9 @@ async function closePositionInternal(
     }
 
     const remainingSteps = currentSteps - closeSteps;
-
     const remainingQuantity = Number((remainingSteps * volumeStep).toFixed(8));
-
     const isFullClose = remainingSteps === 0;
-
-    /*
-     * Đóng position:
-     *
-     * LONG  -> SELL -> BID
-     * SHORT -> BUY  -> ASK
-     */
     const closeSide = position.side === "LONG" ? "SELL" : "BUY";
-
     const closePrice =
       position.side === "LONG"
         ? Number(marketPrice.bid)
@@ -2185,30 +2074,10 @@ export async function executePendingLimitOrder(
 
     validateStopLevels(positionSide, bid, ask, stopLoss, takeProfit);
 
-    const existingPosition = await tx.orm.public.Position.where({
-      accountId: account.id,
-      symbol: order.symbol,
-      status: "OPEN",
-      side: positionSide,
-    }).first();
-
-    if (
-      existingPosition &&
-      (stopLoss !== undefined || takeProfit !== undefined)
-    ) {
-      throw new AppError(
-        "Position đã tồn tại. Hãy cập nhật SL/TP qua endpoint riêng.",
-        400,
-        "POSITION_STOPS_UPDATE_REQUIRED",
-      );
-    }
-
     // Check freshness again immediately before the first write.
     validateAutomaticQuoteFreshness(quote, limitMaxQuoteAgeMs);
     const now = new Date().toISOString();
 
-    // Update the ORIGINAL pending order.
-    // The status predicate prevents a stale state transition.
     const filledOrder = assertUpdated(
       await tx.orm.public.Order.where({
         id: order.id,
@@ -2223,99 +2092,41 @@ export async function executePendingLimitOrder(
       "LIMIT_ORDER_UPDATE_FAILED",
     );
 
-    let responsePosition: OrderExecutionPositionResponse;
+    const currentPrice = positionSide === "LONG" ? bid : ask;
+    const unrealizedPnl = calculatePnl(
+      positionSide,
+      executionPrice,
+      currentPrice,
+      quantity,
+    );
 
-    if (existingPosition) {
-      const oldQuantity = Number(existingPosition.quantity);
-      const oldAverage = Number(existingPosition.averageEntryPrice);
+    const newPosition = await tx.orm.public.Position.create({
+      accountId: account.id,
+      symbol: order.symbol,
+      side: positionSide,
+      quantity: String(order.quantity),
+      averageEntryPrice: formatPrice(executionPrice),
+      currentPrice: formatPrice(currentPrice),
+      unrealizedPnl: formatDecimal(unrealizedPnl),
+      stopLoss: stopLoss ?? null,
+      takeProfit: takeProfit ?? null,
+      status: "OPEN",
+    });
 
-      const newQuantity = oldQuantity + quantity;
+    await tx.orm.public.Trade.create({
+      accountId: account.id,
+      orderId: filledOrder.id,
+      positionId: newPosition.id,
+      symbol: order.symbol,
+      side: order.side,
+      quantity: String(order.quantity),
+      entryPrice: formatPrice(executionPrice),
+      exitPrice: null,
+      realizedPnl: null,
+      commission: ZERO,
+    });
 
-      const newAverage = Number(
-        formatPrice(
-          calculateWeightedAverage(
-            oldQuantity,
-            oldAverage,
-            quantity,
-            executionPrice,
-          ),
-        ),
-      );
-
-      const newUnrealizedPnl = calculatePnl(
-        positionSide,
-        newAverage,
-        positionSide === "LONG" ? bid : ask,
-        newQuantity,
-      );
-
-      const updatedPosition = assertUpdated(
-        await tx.orm.public.Position.where({
-          id: existingPosition.id,
-          accountId: account.id,
-          status: "OPEN",
-        }).update({
-          quantity: String(newQuantity),
-          averageEntryPrice: formatPrice(newAverage),
-          currentPrice: formatPrice(positionSide === "LONG" ? bid : ask),
-          unrealizedPnl: formatDecimal(newUnrealizedPnl),
-        }),
-        "Không thể cập nhật position",
-        "POSITION_UPDATE_FAILED",
-      );
-
-      await tx.orm.public.Trade.create({
-        accountId: account.id,
-        orderId: filledOrder.id,
-        positionId: updatedPosition.id,
-        symbol: order.symbol,
-        side: order.side,
-        quantity: String(order.quantity),
-        entryPrice: formatPrice(executionPrice),
-        exitPrice: null,
-        realizedPnl: null,
-        commission: ZERO,
-      });
-
-      responsePosition = toPositionResponse(updatedPosition);
-    } else {
-      const currentPrice = positionSide === "LONG" ? bid : ask;
-
-      const unrealizedPnl = calculatePnl(
-        positionSide,
-        executionPrice,
-        currentPrice,
-        quantity,
-      );
-
-      const newPosition = await tx.orm.public.Position.create({
-        accountId: account.id,
-        symbol: order.symbol,
-        side: positionSide,
-        quantity: String(order.quantity),
-        averageEntryPrice: formatPrice(executionPrice),
-        currentPrice: formatPrice(currentPrice),
-        unrealizedPnl: formatDecimal(unrealizedPnl),
-        stopLoss: stopLoss ?? null,
-        takeProfit: takeProfit ?? null,
-        status: "OPEN",
-      });
-
-      await tx.orm.public.Trade.create({
-        accountId: account.id,
-        orderId: filledOrder.id,
-        positionId: newPosition.id,
-        symbol: order.symbol,
-        side: order.side,
-        quantity: String(order.quantity),
-        entryPrice: formatPrice(executionPrice),
-        exitPrice: null,
-        realizedPnl: null,
-        commission: ZERO,
-      });
-
-      responsePosition = toPositionResponse(newPosition);
-    }
+    const responsePosition = toPositionResponse(newPosition);
 
     // Revalue ALL open positions using the same quote.
     const openPositions = await tx.orm.public.Position.where({

@@ -103,6 +103,39 @@ model MarketPrice {
   @@index([symbol, timestamp])
 }
 
+model MarketCandle {
+  id        String            @id @default(uuid())
+  symbol    String
+  interval  String
+  time      TimestamptzString
+  open      Decimal
+  high      Decimal
+  low       Decimal
+  close     Decimal
+  source    String?
+  receivedAt TimestamptzString @default(now())
+
+  @@unique([symbol, interval, time])
+  @@index([symbol, interval, time])
+}
+
+model HistoricalMarketCandleFull {
+  id         String            @id @default(uuid())
+  symbol     String
+  interval   String
+  time       TimestamptzString
+  open       Decimal
+  high       Decimal
+  low        Decimal
+  close      Decimal
+  source     String?
+  receivedAt TimestamptzString @default(now())
+
+  @@unique([symbol, interval, time])
+  @@index([symbol, interval, time])
+  @@map("historicalMarketCandleFull")
+}
+
 model Order {
   id              String             @id @default(uuid())
   accountId       String

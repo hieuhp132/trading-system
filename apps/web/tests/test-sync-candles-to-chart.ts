@@ -65,6 +65,7 @@ function createMock() {
     interval: "1m",
     shouldClearChart: false,
     fittedInterval: null,
+    lastAppliedLatestTime: null,
   });
 
   assert.deepEqual(mock.calls, [1]);
@@ -91,6 +92,7 @@ function createMock() {
     interval: "1m",
     shouldClearChart: false,
     fittedInterval: "1m",
+    lastAppliedLatestTime: validData.items.at(-1)?.time ?? null,
   });
 
   assert.deepEqual(mock.calls, [1]);
@@ -120,6 +122,7 @@ function createMock() {
     interval: "1m",
     shouldClearChart: true,
     fittedInterval: "1m",
+    lastAppliedLatestTime: validData.items.at(-1)?.time ?? null,
   });
 
   assert.deepEqual(mock.calls, [0]);
@@ -154,6 +157,7 @@ function createMock() {
     interval: "1m",
     shouldClearChart: true,
     fittedInterval: "1m",
+    lastAppliedLatestTime: validData.items.at(-1)?.time ?? null,
   });
 
   assert.deepEqual(mock.calls, [0]);
@@ -178,6 +182,7 @@ function createMock() {
     interval: "5m",
     shouldClearChart: false,
     fittedInterval: "1m",
+    lastAppliedLatestTime: validData.items.at(-1)?.time ?? null,
   });
 
   assert.deepEqual(mock.calls, [0]);
@@ -202,6 +207,7 @@ function createMock() {
     interval: "1m",
     shouldClearChart: false,
     fittedInterval: "1m",
+    lastAppliedLatestTime: validData.items.at(-1)?.time ?? null,
   });
 
   assert.deepEqual(mock.calls, [1]);
@@ -228,6 +234,7 @@ function createMock() {
     interval: "1m",
     shouldClearChart: true,
     fittedInterval: "1m",
+    lastAppliedLatestTime: validData.items.at(-1)?.time ?? null,
   });
 
   assert.deepEqual(mock.calls, [0]);
@@ -239,6 +246,111 @@ function createMock() {
   );
 }
 
+// =========================================================
+// TEST 8: RESET FIT STATE ALLOWS FRESH DATA TO RE-FIT
+// =========================================================
+
+{
+  const mock = createMock();
+
+  const result = syncCandlesToChart({
+    ...mock,
+    data: validData,
+    interval: "1m",
+    shouldClearChart: false,
+    fittedInterval: null,
+    lastAppliedLatestTime: null,
+  });
+
+  assert.equal(result.fittedInterval, "1m");
+  assert.equal(result.latestTimestamp, validData.items.at(-1)?.time ?? null);
+
+  console.log(
+    "[PASS] Reset fit state: fresh 1m data is accepted and re-fits",
+  );
+}
+
+// =========================================================
+// TEST 9: STALE SAME-INTERVAL DATA SHOULD NOT OVERRIDE NEWER RANGE
+// =========================================================
+
+{
+  const mock = createMock();
+
+  const newerData: MarketCandles = {
+    symbol: "XAUUSD",
+    interval: "1m",
+    source: "demo",
+    items: [
+      {
+        time: 1790000000,
+        open: "3650.00",
+        high: "3652.00",
+        low: "3649.00",
+        close: "3651.00",
+      },
+      {
+        time: 1790000060,
+        open: "3651.00",
+        high: "3655.00",
+        low: "3650.00",
+        close: "3654.00",
+      },
+    ],
+  };
+
+  const staleData: MarketCandles = {
+    symbol: "XAUUSD",
+    interval: "1m",
+    source: "demo",
+    items: [
+      {
+        time: 1780000000,
+        open: "3640.00",
+        high: "3641.00",
+        low: "3639.00",
+        close: "3640.50",
+      },
+      {
+        time: 1780000060,
+        open: "3640.50",
+        high: "3642.00",
+        low: "3639.50",
+        close: "3641.20",
+      },
+    ],
+  };
+
+  const firstResult = syncCandlesToChart({
+    ...mock,
+    data: newerData,
+    interval: "1m",
+    shouldClearChart: false,
+    fittedInterval: null,
+    lastAppliedLatestTime: null,
+  });
+
+  assert.deepEqual(mock.calls, [2]);
+  assert.equal(firstResult.fittedInterval, "1m");
+
+  const staleResult = syncCandlesToChart({
+    ...mock,
+    data: staleData,
+    interval: "1m",
+    shouldClearChart: false,
+    fittedInterval: "1m",
+    lastAppliedLatestTime: firstResult.latestTimestamp,
+  });
+
+  assert.deepEqual(mock.calls, [2]);
+  assert.equal(staleResult.action, "update");
+  assert.equal(staleResult.latestTimestamp, firstResult.latestTimestamp);
+
+  console.log(
+    "[PASS] Stale same-interval update: ignore older data snapshot",
+  );
+}
+
 console.log(
-  "[PASS] syncCandlesToChart: 7/7 tests",
+  "[PASS] syncCandlesToChart: 9/9 tests",
 );

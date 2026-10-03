@@ -19,6 +19,7 @@ export interface CreateOrderResponse {
   executedPrice: string | null;
   status: OrderStatus;
   commission: string;
+  realizedPnl: string | null;
   createdAt: string;
   executedAt: string | null;
   stopLoss: string | null;

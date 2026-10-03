@@ -1,29 +1,39 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CandlestickSeries,
   ColorType,
   createChart,
   type IChartApi,
   type ISeriesApi,
-
 } from "lightweight-charts";
 
-import { useMarketCandles } from "../hooks/useMarketCandles";
+import type { MarketCandles } from "../api";
 import { getCandleDisplayState } from "../candleDisplayState";
 import { getCandleFreshness } from "../candleFreshness";
 import { syncCandlesToChart } from "../syncCandlesToChart";
+import { shouldPauseMarketPolling } from "../market-hours";
+import { useMarketStreamStatus } from "../MarketStreamBridge";
 
 interface XAUUSDChartProps {
-  interval?: "1m" | "5m" | "15m" | "1h";
+  interval?: "1m" | "5m" | "15m" | "1h" | "4h" | "1d";
+  candlesData: MarketCandles | undefined;
+  isLoading: boolean;
+  isError: boolean;
 }
 
-export function XAUUSDChart({ interval = "1m" }: XAUUSDChartProps) {
+export function XAUUSDChart({
+  interval = "1m",
+  candlesData,
+  isLoading,
+  isError,
+}: XAUUSDChartProps) {
   const [nowMs, setNowMs] = useState(() => Date.now());
+  const streamStatus = useMarketStreamStatus();
 
   useEffect(() => {
     const timer = window.setInterval(() => {
       setNowMs(Date.now());
-    }, 1000);
+    }, 10_000);
 
     return () => {
       window.clearInterval(timer);
@@ -35,14 +45,6 @@ export function XAUUSDChart({ interval = "1m" }: XAUUSDChartProps) {
   const chartRef = useRef<IChartApi | null>(null);
 
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
-
-  const fittedIntervalRef = useRef<string | null>(null);
-
-  const candlesQuery = useMarketCandles({
-    symbol: "XAUUSD",
-    interval,
-    limit: 100,
-  });
 
   useEffect(() => {
     if (!containerRef.current) {
@@ -58,50 +60,51 @@ export function XAUUSDChart({ interval = "1m" }: XAUUSDChartProps) {
       layout: {
         background: {
           type: ColorType.Solid,
-          color: "#ffffff",
+          color: "#151d2d",
         },
 
-        textColor: "#64748b",
+        textColor: "#8794aa",
+        attributionLogo: false,
       },
 
       grid: {
         vertLines: {
-          color: "#f1f5f9",
+          color: "rgba(135, 148, 170, 0.11)",
         },
 
         horzLines: {
-          color: "#f1f5f9",
+          color: "rgba(135, 148, 170, 0.11)",
         },
       },
 
       rightPriceScale: {
-        borderColor: "#e2e8f0",
+        borderColor: "rgba(135, 148, 170, 0.18)",
       },
 
       timeScale: {
-        borderColor: "#e2e8f0",
+        borderColor: "rgba(135, 148, 170, 0.18)",
         timeVisible: true,
         secondsVisible: false,
       },
 
       crosshair: {
         vertLine: {
-          color: "#94a3b8",
+          color: "rgba(214, 173, 96, 0.62)",
         },
 
         horzLine: {
-          color: "#94a3b8",
+          color: "rgba(214, 173, 96, 0.62)",
         },
       },
     });
 
     const series = chart.addSeries(CandlestickSeries, {
-      upColor: "#16a34a",
-      downColor: "#dc2626",
-      borderUpColor: "#16a34a",
-      borderDownColor: "#dc2626",
-      wickUpColor: "#16a34a",
-      wickDownColor: "#dc2626",
+      upColor: "#3db982",
+      downColor: "#d46d78",
+      borderUpColor: "#3db982",
+      borderDownColor: "#d46d78",
+      wickUpColor: "#3db982",
+      wickDownColor: "#d46d78",
     });
 
     chartRef.current = chart;
@@ -121,7 +124,6 @@ export function XAUUSDChart({ interval = "1m" }: XAUUSDChartProps) {
 
     return () => {
       resizeObserver.disconnect();
-
       chart.remove();
 
       chartRef.current = null;
@@ -129,12 +131,14 @@ export function XAUUSDChart({ interval = "1m" }: XAUUSDChartProps) {
     };
   }, []);
 
-  const source = candlesQuery.data?.source;
+  const source = candlesData?.source;
+  const marketClosed = shouldPauseMarketPolling();
 
   const displayState = getCandleDisplayState({
-    data: candlesQuery.data,
-    isLoading: candlesQuery.isLoading,
-    isError: candlesQuery.isError,
+    data: candlesData,
+    isLoading,
+    isError,
+    marketClosed,
   });
   useEffect(() => {
     const series = seriesRef.current;
@@ -143,25 +147,20 @@ export function XAUUSDChart({ interval = "1m" }: XAUUSDChartProps) {
       return;
     }
 
-    const result = syncCandlesToChart({
+    syncCandlesToChart({
       series,
       chart: chartRef.current,
-      data: candlesQuery.data,
+      data: candlesData,
       interval,
       shouldClearChart: displayState.shouldClearChart,
-      fittedInterval: fittedIntervalRef.current,
+      fittedInterval: null,
+      lastAppliedLatestTime: null,
+      skipFitContent: true,
     });
 
-    fittedIntervalRef.current = result.fittedInterval;
-  }, [
-    candlesQuery.data,
-    displayState.shouldClearChart,
-    interval,
-  ]);
+  }, [candlesData, displayState.shouldClearChart, interval]);
 
-
-
-  const metadata = candlesQuery.data?.metadata;
+  const metadata = candlesData?.metadata;
 
   const freshness = getCandleFreshness({
     interval,
@@ -189,76 +188,66 @@ export function XAUUSDChart({ interval = "1m" }: XAUUSDChartProps) {
       : null;
   };
 
-  const backendReceivedAt = formatTimestamp(metadata?.receivedAt);
-
-  const frontendUpdatedAt =
-    candlesQuery.dataUpdatedAt > 0
-      ? formatTimestamp(candlesQuery.dataUpdatedAt)
-      : null;
-
   const latestCandleAt =
     metadata?.latestCandleTime !== null &&
     metadata?.latestCandleTime !== undefined
       ? formatTimestamp(metadata.latestCandleTime * 1000)
       : null;
 
-  const sourceTimestamp = formatTimestamp(metadata?.sourceTimestamp);
+  const isInitialLoading = isLoading && !candlesData;
+
+  const statusText = useMemo(() => {
+    if (marketClosed) {
+      return "Đóng cửa cuối tuần";
+    }
+
+    if (isInitialLoading) {
+      return "Loading...";
+    }
+
+    if (streamStatus.connected && freshness.status === "CURRENT_BUCKET") {
+      return latestCandleAt ? `Live · ${latestCandleAt}` : "Live";
+    }
+
+    if (latestCandleAt) {
+      return `Updated ${latestCandleAt}`;
+    }
+
+    return "Waiting for candles";
+  }, [
+    marketClosed,
+    isInitialLoading,
+    streamStatus.connected,
+    freshness.status,
+    latestCandleAt,
+  ]);
 
   return (
-    <section className="dashboard-panel market-chart-panel">
+    <section className="market-chart-panel">
       <div className="panel-header">
         <div>
           <div className="panel-title-row">
             <h2>XAUUSD Chart</h2>
 
-            {candlesQuery.isFetching && (
+            {isInitialLoading && (
               <span className="market-chart-loading">Updating...</span>
             )}
           </div>
 
-          <p>Candlestick · {interval}</p>
-
-          <p role="status">
-            Nguồn dữ liệu:{" "}
-            {source === "demo"
-              ? "DEMO — dữ liệu mô phỏng"
-              : source === "twelve-data"
-                ? "TWELVE DATA — dữ liệu tham khảo"
-                : "Chưa xác định"}
-          </p>
-
           <p>
-            Backend nhận dữ liệu:{" "}
-            {backendReceivedAt ?? "Chưa có metadata từ API"}
+            Candlestick · {interval} ·{" "}
+            {source === "twelve-data"
+              ? "Twelve Data"
+              : source === "demo"
+                ? "Demo"
+                : source === "historical-full" || source === "GETDATA"
+                  ? "Historical database"
+                  : "Awaiting source"}
           </p>
-
-          <p>
-            Frontend cập nhật cache:{" "}
-            {frontendUpdatedAt ?? "Chưa có dữ liệu"}
-            {" "}(theo đồng hồ thiết bị)
-          </p>
-
-          <p>
-            Nến mới nhất bắt đầu:{" "}
-            {latestCandleAt ?? "Chưa xác định"}
-          </p>
-
-          <p>
-            Timestamp nguồn:{" "}
-            {sourceTimestamp ?? "Chưa xác minh"}
-          </p>
-
-          <p role="status">
-            Trạng thái khung nến: {bucketLabel}
-          </p>
-
-          <p>
-            Độ mới dữ liệu thị trường: Chưa xác minh
-          </p>
-
-          {candlesQuery.isFetching && candlesQuery.data && (
-            <p>Đang kiểm tra dữ liệu mới...</p>
-          )}
+        </div>
+        <div className="market-chart-panel__status" title={bucketLabel}>
+          <span className="market-chart-panel__status-dot" />
+          {statusText}
         </div>
       </div>
 
@@ -268,12 +257,7 @@ export function XAUUSDChart({ interval = "1m" }: XAUUSDChartProps) {
         </div>
       )}
 
-      {candlesQuery.isLoading && (
-        <div className="market-chart-placeholder">Đang tải chart...</div>
-      )}
-
-      {(displayState.status === "error" ||
-        displayState.status === "stale") && (
+      {(displayState.status === "error" || displayState.status === "stale") && (
         <div className="trading-order-panel__error" role="alert">
           Không thể cập nhật dữ liệu biểu đồ.
           {displayState.shouldShowStaleWarning

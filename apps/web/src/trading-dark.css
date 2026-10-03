@@ -166,12 +166,14 @@
 }
 
 .app-shell .position-side--long,
+.app-shell .position-side--buy,
 .app-shell .position-pnl--profit,
 .app-shell .order-side--buy {
   color: var(--trade-profit);
 }
 
 .app-shell .position-side--short,
+.app-shell .position-side--sell,
 .app-shell .position-pnl--loss,
 .app-shell .order-side--sell {
   color: var(--trade-loss);

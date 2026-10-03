@@ -16,14 +16,22 @@ export interface MarketPrice {
   };
 }
 
-export type CandleInterval = "1m" | "5m" | "15m" | "1h";
+export type CandleInterval = "1m" | "5m" | "15m" | "1h" | "4h" | "1d";
 
 export interface MarketCandle {
   time: number;
-  open: string;
-  high: string;
-  low: string;
-  close: string;
+  open: string | number;
+  high: string | number;
+  low: string | number;
+  close: string | number;
+}
+
+export interface MarketCandlesNumeric {
+  time: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
 }
 
 export interface MarketCandlesMetadata {
@@ -35,7 +43,7 @@ export interface MarketCandlesMetadata {
 export interface MarketCandles {
   symbol: string;
   interval: CandleInterval;
-  source: "demo" | "twelve-data";
+  source: string;
   items: MarketCandle[];
   metadata?: MarketCandlesMetadata;
 }

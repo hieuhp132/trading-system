@@ -6,6 +6,11 @@ import type {
   ReferenceQuoteCache,
 } from "./reference-quote-cache.js";
 
+import {
+  isMarketClosedByWeekend,
+  markMarketClosedConfirmed,
+} from "./market-hours.js";
+
 export interface ReferenceQuoteFeedOptions {
   symbol: string;
   intervalMs: number;
@@ -66,6 +71,19 @@ export function createReferenceQuoteFeed(
      */
     if (activeRefresh) {
       return activeRefresh;
+    }
+
+    if (isMarketClosedByWeekend()) {
+      markMarketClosedConfirmed();
+      const cached = dependencies.cache.get(symbol)?.quote;
+      if (cached) {
+        return cached;
+      }
+
+      throw Object.assign(new Error("Market is closed"), {
+        code: "MARKET_CLOSED",
+        statusCode: 503,
+      });
     }
 
     const request = (async () => {

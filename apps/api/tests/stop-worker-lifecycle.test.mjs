@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createStopWorker } from "../dist/modules/orders/stop-worker.js";
+import {
+  shouldPauseMarketPolling,
+} from "../dist/modules/market/market-hours.js";
 
 function dependencies(overrides = {}) {
   return {
@@ -20,6 +23,22 @@ function dependencies(overrides = {}) {
     ...overrides,
   };
 }
+
+test("Market polling stops after the closed-market window is confirmed", () => {
+  const saturday = new Date("2024-07-06T00:30:00Z");
+  const sunday = new Date("2024-07-07T12:00:00Z");
+
+  assert.equal(shouldPauseMarketPolling(saturday), true);
+  assert.equal(shouldPauseMarketPolling(sunday), true);
+});
+
+test("Market polling resumes on Monday after the weekend close window ends", () => {
+  const saturday = new Date("2024-07-06T00:30:00Z");
+  const mondayMorning = new Date("2024-07-08T06:00:00Z");
+
+  assert.equal(shouldPauseMarketPolling(saturday), true);
+  assert.equal(shouldPauseMarketPolling(mondayMorning), false);
+});
 
 test("Empty tick does not request quotes or execute trades", async () => {
   let scans = 0;

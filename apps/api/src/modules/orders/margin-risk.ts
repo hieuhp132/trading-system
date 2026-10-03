@@ -47,6 +47,15 @@ export function evaluateMarginRisk(
   }
 
   if (usedMargin === 0) {
+    if (equity <= 0) {
+      return {
+        equity,
+        usedMargin,
+        marginLevel: null,
+        state: "STOP_OUT",
+      };
+    }
+
     return {
       equity,
       usedMargin,

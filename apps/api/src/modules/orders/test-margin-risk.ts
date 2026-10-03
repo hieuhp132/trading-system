@@ -102,6 +102,18 @@ test("negative equity can trigger STOP_OUT", () => {
   assert.equal(result.marginLevel, -10);
 });
 
+test("negative balance with zero used margin must still trigger STOP_OUT", () => {
+  const result = evaluateMarginRisk(
+    -50,
+    0,
+    100,
+    50,
+  );
+
+  assert.equal(result.state, "STOP_OUT");
+  assert.equal(result.marginLevel, null);
+});
+
 test("negative used margin is rejected", () => {
   assert.throws(
     () => evaluateMarginRisk(1_000, -1, 100, 50),

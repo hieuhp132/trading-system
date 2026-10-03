@@ -1,21 +1,23 @@
 import { NavLink, Outlet } from "react-router-dom";
 import {
   House,
-  ChartCandlestick,
   ArrowLeftRight,
   BriefcaseBusiness,
   History,
-  Gem,
+  CandlestickChart,
+  Settings,
 } from "lucide-react";
+import { BrandMark } from "../components/BrandMark";
 
 import "./app-shell.css";
 
 const navigation = [
-  { to: "/", label: "Home", icon: House, end: true },
-  { to: "/market", label: "Market", icon: ChartCandlestick },
+  { to: "/app", label: "Home", icon: House, end: true },
+  { to: "/market", label: "Market", icon: CandlestickChart },
   { to: "/trade", label: "Trade", icon: ArrowLeftRight },
   { to: "/positions", label: "Positions", icon: BriefcaseBusiness },
   { to: "/history", label: "History", icon: History },
+  { to: "/settings", label: "Settings", icon: Settings },
 ];
 
 function Navigation({ className }: { className: string }) {
@@ -43,27 +45,24 @@ export function DashboardLayout() {
     <div className="app-shell">
       <aside className="app-sidebar">
         <div className="app-brand">
-          <span className="app-brand__icon">
-            <Gem size={22} aria-hidden="true" />
-          </span>
+          <BrandMark size="large" />
           <div>
-            <strong>Trading System</strong>
+            <strong>Gold Trading</strong>
             <small>Paper trading</small>
           </div>
         </div>
 
         <Navigation className="app-nav app-nav--desktop" />
 
-        <div className="app-sidebar__footer">XAUUSD · Demo</div>
+        <div className="app-sidebar__footer">XAUUSD · Paper</div>
       </aside>
 
       <div className="app-shell__workspace">
         <header className="app-topbar">
-          <div className="app-topbar__brand">
-            <Gem size={23} aria-hidden="true" />
-            <strong>Trading System</strong>
+          <div className="app-topbar__status" aria-label="Paper trading mode">
+            <span className="app-topbar__status-dot" aria-hidden="true" />
+            <span>Paper trading</span>
           </div>
-          <span className="app-demo-badge">DEMO</span>
         </header>
 
         <main className="app-content" id="main-content">

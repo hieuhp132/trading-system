@@ -1,0 +1,521 @@
+[stop-out-worker] account=9916b20e-b55d-440f-a3c4-faf5a2cde834 Error: Stop worker: stale or invalid quote timestamp (age=15s; max=15s)
+    at validateWorkerQuote (D:\trading-system\apps\api\src\modules\orders\stop-worker.ts:129:11)
+    at tick (D:\trading-system\apps\api\src\modules\orders\stop-out-worker.ts:239:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+[stop-out-worker] account=8a1f4d65-053d-41b0-8b0b-87b4576ad47d AppError: Market quote đã hết hạn hoặc timestamp không hợp lệ
+    at validateAutomaticQuoteFreshness (D:\trading-system\apps\api\src\modules\orders\service.ts:1150:11)
+    at <anonymous> (D:\trading-system\apps\api\src\modules\orders\service.ts:1216:7)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async withTransaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-family-sql@8.0._fc21c36cf71fc6cb8ab39b88e61f5e37\2-sql\5-runtime\dist\exports-BDzGy_bM.mjs:1798:13)
+    at async closePositionInternal (D:\trading-system\apps\api\src\modules\orders\service.ts:1197:18)
+    at async tick (D:\trading-system\apps\api\src\modules\orders\stop-out-worker.ts:293:15) {
+  statusCode: 502,
+  code: 'STALE_MARKET_QUOTE',
+  details: undefined,
+  isOperational: true
+}
+.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:364:7)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:364:7)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:364:7)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:364:7)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:364:7)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}
+[market-history] failed to read persisted candles Error [StructuredError]: Postgres client is closed
+    at structuredError (D:\trading-system\node_modules\.pnpm\@prisma+orm-framework@8.0.0-rc.11_typescript@5.9.3\1-framework\0-foundation\utils\dist\structured-error.mjs:12:91)
+    at postgresError (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\errors-DfWK9xep.mjs:4:9)
+    at getRuntime (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:142:21)
+    at Object.transaction (D:\trading-system\node_modules\.pnpm\@prisma+orm-postgres@8.0.0-_f88fbc27f21bdcb8a9b31ed6d0654cc2\3-extensions\postgres\dist\runtime.mjs:210:27)
+    at queryPersistedCandleRows (D:\trading-system\apps\api\src\modules\market\service.ts:349:19)
+    at getPersistedCandles (D:\trading-system\apps\api\src\modules\market\service.ts:359:26)
+    at getMarketCandles (D:\trading-system\apps\api\src\modules\market\service.ts:771:25)
+    at Timeout._onTimeout (D:\trading-system\apps\api\src\modules\market\service.ts:623:13) {
+  code: 'DRIVER.NOT_CONNECTED',
+  why: 'close() was called on this client.',
+  fix: 'Create a new postgres(...) client.',
+  meta: { extension: 'postgres' }
+}

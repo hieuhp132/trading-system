@@ -17,10 +17,10 @@ import {
 
 import type { CandleInterval } from "./types.js";
 
-const VALID_INTERVALS: CandleInterval[] = ["1m", "5m", "15m", "1h"];
+const VALID_INTERVALS: CandleInterval[] = ["1m", "5m", "15m", "1h", "4h", "1d"];
 
-const DEFAULT_LIMIT = 100;
-const MAX_LIMIT = 500;
+const DEFAULT_LIMIT = 50_000;
+const MAX_LIMIT = 500_000;
 
 const REFERENCE_QUOTE_STALE_AFTER_MS = 5_000;
 
@@ -191,7 +191,7 @@ export async function getCandles(req: Request, res: Response): Promise<void> {
   if (!VALID_INTERVALS.includes(intervalParam as CandleInterval)) {
     res.status(400).json({
       success: false,
-      message: "Interval không hợp lệ. Hỗ trợ: 1m, 5m, 15m, 1h.",
+      message: "Interval không hợp lệ. Hỗ trợ: 1m, 5m, 15m, 1h, 4h, 1d.",
       code: "INVALID_CANDLE_INTERVAL",
     });
 
@@ -227,13 +227,24 @@ export async function getCandles(req: Request, res: Response): Promise<void> {
 
   const latestCandleTime =
     candles.items.length > 0
-      ? Math.max(...candles.items.map((candle) => candle.time))
+      ? candles.items.reduce((latest, candle) => Math.max(latest, candle.time), candles.items[0].time)
       : null;
+
+  const numericItems = candles.items.map((candle) => ({
+    time: candle.time,
+    open: Number(candle.open),
+    high: Number(candle.high),
+    low: Number(candle.low),
+    close: Number(candle.close),
+  }));
 
   res.status(200).json({
     success: true,
     data: {
-      ...candles,
+      symbol: candles.symbol,
+      interval: candles.interval,
+      source: candles.source,
+      items: numericItems,
       metadata: {
         receivedAt,
         sourceTimestamp: null,

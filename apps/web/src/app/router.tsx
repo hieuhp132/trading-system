@@ -1,25 +1,27 @@
-import { Navigate, Outlet, createBrowserRouter } from "react-router-dom";
+import { Navigate, createBrowserRouter } from "react-router-dom";
 
 import AuthLayout from "../layouts/Auth";
 import { DashboardLayout } from "../layouts/Dashboard";
 import { DashboardPage } from "../pages/Dashboard";
+import { HomePage } from "../pages/HomePage";
+import { LandingPage } from "../pages/LandingPage";
+import { NewsPage } from "../pages/NewsPage";
+import { PublicLayout } from "../layouts/Public";
 import { MarketPage, TradePage, PositionsPage, HistoryPage } from "../pages/TradingTabs";
 import { Login } from "../pages/Login";
-import { useAuthStore } from "../stores/auth";
-
-function ProtectedRoute() {
-  const accessToken = useAuthStore((state) => state.accessToken);
-  return accessToken ? <Outlet /> : <Navigate to="/login" replace />;
-}
-
-function PublicRoute() {
-  const accessToken = useAuthStore((state) => state.accessToken);
-  return accessToken ? <Navigate to="/" replace /> : <Outlet />;
-}
+import { ProtectedRoute } from "./ProtectedRoute";
+import { DevelopingPage } from "../pages/DevelopingPage";
 
 export const router = createBrowserRouter([
   {
-    element: <PublicRoute />,
+    element: <PublicLayout />,
+    children: [
+      { path: "/", element: <HomePage /> },
+      { path: "/landing", element: <LandingPage /> },
+      { path: "/news", element: <NewsPage /> },
+    ],
+  },
+  {
     children: [
       {
         element: <AuthLayout />,
@@ -33,11 +35,12 @@ export const router = createBrowserRouter([
       {
         element: <DashboardLayout />,
         children: [
-          { path: "/", element: <DashboardPage /> },
+          { path: "/app", element: <DashboardPage /> },
           { path: "/market", element: <MarketPage /> },
           { path: "/trade", element: <TradePage /> },
           { path: "/positions", element: <PositionsPage /> },
           { path: "/history", element: <HistoryPage /> },
+          { path: "/settings", element: <DevelopingPage eyebrow="SETTINGS" title="Cài đặt đang được phát triển" description="Các tuỳ chỉnh tài khoản và trải nghiệm sẽ sớm có mặt tại đây." /> },
         ],
       },
     ],

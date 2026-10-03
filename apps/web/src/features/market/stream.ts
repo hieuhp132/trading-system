@@ -1,7 +1,7 @@
 import type { MarketPrice } from "./api";
 
 const DEFAULT_API_BASE_URL =
-  "http://localhost:4000/api/v1";
+  "http://localhost:4001/api/v1";
 
 function normalizeApiBaseUrl(
   baseUrl: string,

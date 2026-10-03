@@ -88,6 +88,22 @@ model MarketPrice {
   @@index([symbol, timestamp])
 }
 
+model MarketCandle {
+  id        String   @id @default(uuid())
+  symbol    String
+  interval  String
+  time      DateTime
+  open      Decimal  @db.Decimal(18, 5)
+  high      Decimal  @db.Decimal(18, 5)
+  low       Decimal  @db.Decimal(18, 5)
+  close     Decimal  @db.Decimal(18, 5)
+  source    String?
+  receivedAt DateTime @default(now())
+
+  @@unique([symbol, interval, time])
+  @@index([symbol, interval, time])
+}
+
 model Order {
   id              String        @id @default(uuid())
   accountId       String

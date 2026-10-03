@@ -49,14 +49,27 @@ const INTERVAL_MAP: Record<CandleInterval, string> = {
   "5m": "5min",
   "15m": "15min",
   "1h": "1h",
+  "4h": "4h",
+  "1d": "1day",
 };
+
+function resolvePriceCacheTtlMs(): number {
+  const raw = process.env.TWELVE_DATA_PRICE_CACHE_TTL_MS?.trim();
+  if (!raw) return 60_000;
+
+  const value = Number(raw);
+  return Number.isSafeInteger(value) && value >= 1_000
+    ? value
+    : 60_000;
+}
 
 export class TwelveDataProvider implements MarketDataProvider {
   private cachedPrice: MarketPriceResponse | null = null;
   private cacheExpiresAt = 0;
   private pendingPriceRequest: Promise<MarketPriceResponse> | null = null;
 
-  private readonly priceCacheTtlMs = 60_000;
+  // Default to one upstream price request per minute; override only for a higher-credit plan.
+  private readonly priceCacheTtlMs = resolvePriceCacheTtlMs();
 
   private readonly apiKey: string;
   private readonly symbol: string;
@@ -209,13 +222,19 @@ export class TwelveDataProvider implements MarketDataProvider {
       );
     }
 
+    const TWELVE_DATA_MAX_OUTPUTSIZE = 5_000;
+    const providerOutputSize = Math.min(
+      Math.max(1, Math.floor(limit)),
+      TWELVE_DATA_MAX_OUTPUTSIZE,
+    );
+
     const url = new URL(`${TWELVE_DATA_BASE_URL}/time_series`);
 
     url.searchParams.set("symbol", this.symbol);
 
     url.searchParams.set("interval", twelveDataInterval);
 
-    url.searchParams.set("outputsize", String(limit));
+    url.searchParams.set("outputsize", String(providerOutputSize));
     url.searchParams.set("timezone", "UTC");
 
     await reserveTwelveDataCredits(1);

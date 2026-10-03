@@ -1,0 +1,18 @@
+{
+  "name": "Gold Trading",
+  "short_name": "Gold Trading",
+  "description": "Realtime market workspace va paper trading cho XAU/USD.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b1120",
+  "theme_color": "#0b1120",
+  "lang": "vi",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

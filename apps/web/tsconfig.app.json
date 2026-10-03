@@ -22,5 +22,5 @@
 "noFallthroughCasesInSwitch": true
 
 },
-"include": ["src"]
+"include": ["src", "tests/test-candle-freshness.ts", "tests/test-candle-display-state.ts"]
 }

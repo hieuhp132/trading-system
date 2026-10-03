@@ -1,0 +1,242 @@
+[
+  {
+    "id": "table.historicalMarketCandleFull",
+    "label": "Create table \"historicalMarketCandleFull\"",
+    "summary": "Creates table \"historicalMarketCandleFull\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "historicalMarketCandleFull"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"historicalMarketCandleFull\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"historicalMarketCandleFull\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"historicalMarketCandleFull\"",
+        "sql": "CREATE TABLE \"public\".\"historicalMarketCandleFull\" (\n  \"close\" numeric NOT NULL,\n  \"high\" numeric NOT NULL,\n  \"id\" text NOT NULL,\n  \"interval\" text NOT NULL,\n  \"low\" numeric NOT NULL,\n  \"open\" numeric NOT NULL,\n  \"receivedAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"source\" text,\n  \"symbol\" text NOT NULL,\n  \"time\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"historicalMarketCandleFull\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"historicalMarketCandleFull\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.marketCandle",
+    "label": "Create table \"marketCandle\"",
+    "summary": "Creates table \"marketCandle\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "marketCandle"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"marketCandle\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"marketCandle\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"marketCandle\"",
+        "sql": "CREATE TABLE \"public\".\"marketCandle\" (\n  \"close\" numeric NOT NULL,\n  \"high\" numeric NOT NULL,\n  \"id\" text NOT NULL,\n  \"interval\" text NOT NULL,\n  \"low\" numeric NOT NULL,\n  \"open\" numeric NOT NULL,\n  \"receivedAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"source\" text,\n  \"symbol\" text NOT NULL,\n  \"time\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"marketCandle\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"marketCandle\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.historicalMarketCandleFull.historicalMarketCandleFull_symbol_interval_time_key",
+    "label": "Add unique constraint on \"historicalMarketCandleFull\" (symbol, interval, time)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "historicalMarketCandleFull_symbol_interval_time_key",
+        "table": "historicalMarketCandleFull"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"historicalMarketCandleFull_symbol_interval_time_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "historicalMarketCandleFull_symbol_interval_time_key",
+          "public",
+          "\"public\".\"historicalMarketCandleFull\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"historicalMarketCandleFull_symbol_interval_time_key\"",
+        "sql": "ALTER TABLE \"public\".\"historicalMarketCandleFull\" ADD CONSTRAINT \"historicalMarketCandleFull_symbol_interval_time_key\" UNIQUE (\"symbol\", \"interval\", \"time\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"historicalMarketCandleFull_symbol_interval_time_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "historicalMarketCandleFull_symbol_interval_time_key",
+          "public",
+          "\"public\".\"historicalMarketCandleFull\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.marketCandle.marketCandle_symbol_interval_time_key",
+    "label": "Add unique constraint on \"marketCandle\" (symbol, interval, time)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "marketCandle_symbol_interval_time_key",
+        "table": "marketCandle"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"marketCandle_symbol_interval_time_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "marketCandle_symbol_interval_time_key",
+          "public",
+          "\"public\".\"marketCandle\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"marketCandle_symbol_interval_time_key\"",
+        "sql": "ALTER TABLE \"public\".\"marketCandle\" ADD CONSTRAINT \"marketCandle_symbol_interval_time_key\" UNIQUE (\"symbol\", \"interval\", \"time\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"marketCandle_symbol_interval_time_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "marketCandle_symbol_interval_time_key",
+          "public",
+          "\"public\".\"marketCandle\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.historicalMarketCandleFull.historicalMarketCandleFull_symbol_interval_time_idx_a5363bcd",
+    "label": "Create index \"historicalMarketCandleFull_symbol_interval_time_idx_a5363bcd\" on \"historicalMarketCandleFull\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "historicalMarketCandleFull_symbol_interval_time_idx_a5363bcd",
+        "table": "historicalMarketCandleFull"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"historicalMarketCandleFull_symbol_interval_time_idx_a5363bcd\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"historicalMarketCandleFull_symbol_interval_time_idx_a5363bcd\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"historicalMarketCandleFull_symbol_interval_time_idx_a5363bcd\"",
+        "sql": "CREATE INDEX \"historicalMarketCandleFull_symbol_interval_time_idx_a5363bcd\" ON \"public\".\"historicalMarketCandleFull\" (\"symbol\", \"interval\", \"time\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"historicalMarketCandleFull_symbol_interval_time_idx_a5363bcd\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"historicalMarketCandleFull_symbol_interval_time_idx_a5363bcd\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.marketCandle.marketCandle_symbol_interval_time_idx_a5363bcd",
+    "label": "Create index \"marketCandle_symbol_interval_time_idx_a5363bcd\" on \"marketCandle\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "marketCandle_symbol_interval_time_idx_a5363bcd",
+        "table": "marketCandle"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"marketCandle_symbol_interval_time_idx_a5363bcd\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"marketCandle_symbol_interval_time_idx_a5363bcd\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"marketCandle_symbol_interval_time_idx_a5363bcd\"",
+        "sql": "CREATE INDEX \"marketCandle_symbol_interval_time_idx_a5363bcd\" ON \"public\".\"marketCandle\" (\"symbol\", \"interval\", \"time\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"marketCandle_symbol_interval_time_idx_a5363bcd\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"marketCandle_symbol_interval_time_idx_a5363bcd\""
+        ]
+      }
+    ]
+  }
+]

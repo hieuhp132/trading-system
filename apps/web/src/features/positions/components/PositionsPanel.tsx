@@ -12,6 +12,10 @@ function formatMoney(value: string | number) {
   }).format(Number(value));
 }
 
+function formatPositionSide(side: "LONG" | "SHORT") {
+  return side === "LONG" ? "BUY" : "SELL";
+}
+
 export function PositionsPanel() {
   const positionsQuery = usePositions();
   const closePositionMutation = useClosePosition();
@@ -165,7 +169,7 @@ export function PositionsPanel() {
 
                       <td>
                         <span
-                          className={`position-side position-side--${position.side.toLowerCase()}`}
+                          className={`position-side position-side--${formatPositionSide(position.side).toLowerCase()}`}
                         >
                           {position.side === "LONG" ? (
                             <TrendingUp size={14} />
@@ -173,7 +177,7 @@ export function PositionsPanel() {
                             <TrendingDown size={14} />
                           )}
 
-                          {position.side}
+                          {formatPositionSide(position.side)}
                         </span>
                       </td>
 
@@ -262,7 +266,7 @@ export function PositionsPanel() {
                       </strong>
 
                       <span
-                        className={`position-side position-side--${position.side.toLowerCase()}`}
+                        className={`position-side position-side--${formatPositionSide(position.side).toLowerCase()}`}
                       >
                         {position.side === "LONG" ? (
                           <TrendingUp size={14} />
@@ -270,7 +274,7 @@ export function PositionsPanel() {
                           <TrendingDown size={14} />
                         )}
 
-                        {position.side}
+                        {formatPositionSide(position.side)}
                       </span>
                     </div>
 

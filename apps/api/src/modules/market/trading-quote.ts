@@ -4,8 +4,6 @@ import {
   type ReferenceQuote,
 } from "./quote-contract.js";
 
-export const MAX_TRADING_QUOTE_AGE_MS = 5_000;
-
 export class TradingQuoteError extends Error {
   constructor(message: string) {
     super(message);
@@ -15,18 +13,8 @@ export class TradingQuoteError extends Error {
 
 export function validateTradingQuote(
   quote: ReferenceQuote,
-  maxAgeMs = MAX_TRADING_QUOTE_AGE_MS,
   now = Date.now(),
 ): asserts quote is ExecutionQuote {
-  if (
-    !Number.isSafeInteger(maxAgeMs) ||
-    maxAgeMs < 1
-  ) {
-    throw new TradingQuoteError(
-      "Invalid trading quote age configuration",
-    );
-  }
-
   if (quote.symbol !== "XAUUSD") {
     throw new TradingQuoteError(
       "Invalid trading quote symbol",
@@ -57,11 +45,10 @@ export function validateTradingQuote(
 
   if (
     !Number.isFinite(receivedAt) ||
-    receivedAt > now + 1_000 ||
-    now - receivedAt > maxAgeMs
+    receivedAt > now + 1_000
   ) {
     throw new TradingQuoteError(
-      "Trading quote is stale or has an invalid receipt timestamp",
+      "Trading quote has an invalid receipt timestamp",
     );
   }
 }

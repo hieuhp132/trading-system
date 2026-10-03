@@ -1,16 +1,18 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { RouterProvider } from "react-router-dom";
 
-import { AppProviders } from "./app/AppProviders";
-import { router } from "./app/router";
+import App from "./App";
 
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <AppProviders>
-      <RouterProvider router={router} />
-    </AppProviders>
+    <App />
   </React.StrictMode>,
 );
+
+if ("serviceWorker" in navigator && import.meta.env.PROD) {
+  window.addEventListener("load", () => {
+    void navigator.serviceWorker.register("/sw.js");
+  });
+}

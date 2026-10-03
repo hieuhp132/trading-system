@@ -1,6 +1,7 @@
 import { db } from "../../database/prisma.js";
 import { XAUUSD_SPEC } from "../../common/constants/xauusd.js";
 import { getTradingQuote } from "../market/service.js";
+import { isMarketClosedError } from "../market/market-hours.js";
 import type { MarketPriceResponse } from "../market/types.js";
 
 import {
@@ -65,6 +66,19 @@ export const defaultStopOutWorkerDependencies:
     execute: executeStopOutPosition,
 
     logError(error, context) {
+      if (isMarketClosedError(error)) {
+        return;
+      }
+
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        (error as { code?: string }).code === "TRADING_QUOTE_STALE"
+      ) {
+        return;
+      }
+
       console.error(
         `[stop-out-worker] ${context}`,
         error,
@@ -85,7 +99,7 @@ export function createStopOutWorker(
     options.intervalMs ?? 1000;
 
   const maxQuoteAgeMs =
-    options.maxQuoteAgeMs ?? 5000;
+    options.maxQuoteAgeMs ?? 60_000;
 
   const now =
     options.now ?? Date.now;
@@ -119,6 +133,8 @@ export function createStopOutWorker(
     Promise<void> | null =
     null;
 
+  let lastStaleTickLogAt = 0;
+
   async function tick(): Promise<void> {
     if (stopping || running) {
       return;
@@ -137,17 +153,29 @@ export function createStopOutWorker(
         return;
       }
 
-      const quote =
-        await dependencies.getQuote();
+      let quote: MarketPriceResponse;
 
-      validateWorkerQuote(
-        quote,
-        maxQuoteAgeMs,
-        now(),
-      );
+      try {
+        quote = await dependencies.getQuote();
+        validateWorkerQuote(
+          quote,
+          maxQuoteAgeMs,
+          now(),
+        );
+      } catch (err) {
+        const ts = Date.now();
+        if (ts - lastStaleTickLogAt >= 30_000) {
+          lastStaleTickLogAt = ts;
+          dependencies.logError(
+            err,
+            "tick: skipping all accounts due to stale/invalid quote",
+          );
+        }
+        return;
+      }
 
-      const bid = Number(quote.bid);
-      const ask = Number(quote.ask);
+      let bid = Number(quote.bid);
+      let ask = Number(quote.ask);
 
       /*
        * Group by account first.
@@ -189,6 +217,35 @@ export function createStopOutWorker(
         }
 
         try {
+          /*
+           * Refresh the shared quote when it has aged past
+           * half the allowed window. This keeps execution
+           * prices current across long account loops and
+           * prevents STALE_MARKET_QUOTE inside transactions.
+           */
+          const refreshThreshold = maxQuoteAgeMs >> 1;
+          const quoteAny = quote as MarketPriceResponse & {
+            receivedAt?: string;
+          };
+          const tsRaw = quoteAny.receivedAt ?? quote.timestamp;
+          const ts = Date.parse(tsRaw);
+          const currentNow = now();
+          if (
+            !Number.isFinite(ts) ||
+            currentNow - ts > refreshThreshold
+          ) {
+            const refreshed =
+              await dependencies.getQuote();
+            validateWorkerQuote(
+              refreshed,
+              maxQuoteAgeMs,
+              currentNow,
+            );
+            quote = refreshed;
+            bid = Number(refreshed.bid);
+            ask = Number(refreshed.ask);
+          }
+
           const userId =
             await dependencies.getUserId(
               accountId,

@@ -41,21 +41,31 @@ export function toReferenceQuote(
     executionCapability: "NONE",
   };
 
-  if (source !== "demo") {
-    return referenceQuote;
+  if (source === "demo") {
+    /*
+     * Explicit paper-execution upgrade.
+     *
+     * timestamp is a temporary compatibility alias only.
+     * receivedAt remains canonical.
+     */
+    const executionQuote: ExecutionQuote = {
+      ...referenceQuote,
+      executionCapability: "PAPER",
+      timestamp: referenceQuote.receivedAt,
+    };
+
+    return executionQuote;
   }
 
-  /*
-   * Explicit paper-execution upgrade.
-   *
-   * timestamp is a temporary compatibility alias only.
-   * receivedAt remains canonical.
-   */
-  const executionQuote: ExecutionQuote = {
-    ...referenceQuote,
-    executionCapability: "PAPER",
-    timestamp: referenceQuote.receivedAt,
-  };
+  if (source === "twelve-data") {
+    const executionQuote: ExecutionQuote = {
+      ...referenceQuote,
+      executionCapability: "LIVE",
+      timestamp: referenceQuote.receivedAt,
+    };
 
-  return executionQuote;
+    return executionQuote;
+  }
+
+  return referenceQuote;
 }

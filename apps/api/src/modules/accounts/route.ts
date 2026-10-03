@@ -6,6 +6,7 @@ import {
   createDemo,
   getAccount,
   getAccountBalance,
+  getAccountBalanceHistory,
   getAccountTradingConditions,
 } from "./controller.js";
 
@@ -18,5 +19,6 @@ router.post("/demo", asyncHandler(createDemo));
 router.get("/", asyncHandler(getAccount));
 
 router.get("/balance", asyncHandler(getAccountBalance));
+router.get("/balance-history", asyncHandler(getAccountBalanceHistory));
 router.get("/trading-conditions", asyncHandler(getAccountTradingConditions));
 export default router;

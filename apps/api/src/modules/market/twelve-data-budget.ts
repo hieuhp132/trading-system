@@ -1,8 +1,31 @@
 import { mkdir, open, readFile, rename, unlink } from "node:fs/promises";
 import { dirname, isAbsolute, resolve } from "node:path";
+import { AppError } from "../../common/errors/app-error.js";
 
-const MINUTE_LIMIT = 6;
-const DAILY_LIMIT = 600;
+function readPositiveIntEnv(name: string, fallback: number): number {
+  const raw = process.env[name];
+
+  if (!raw || raw.trim().length === 0) {
+    return fallback;
+  }
+
+  const value = Number(raw);
+
+  if (!Number.isSafeInteger(value) || value <= 0) {
+    return fallback;
+  }
+
+  return value;
+}
+
+const MINUTE_LIMIT = readPositiveIntEnv(
+  "TWELVE_DATA_MINUTE_LIMIT",
+  1,
+);
+const DAILY_LIMIT = readPositiveIntEnv(
+  "TWELVE_DATA_DAILY_LIMIT",
+  10,
+);
 
 const configuredBudgetFile = process.env.TWELVE_DATA_BUDGET_FILE;
 
@@ -26,10 +49,9 @@ interface BudgetState {
   dailyCredits: number;
 }
 
-export class TwelveDataBudgetError extends Error {
+export class TwelveDataBudgetError extends AppError {
   constructor(message: string) {
-    super(message);
-    this.name = "TwelveDataBudgetError";
+    super(message, 503, "MARKET_DATA_QUOTA_EXCEEDED");
   }
 }
 

@@ -6,7 +6,15 @@ import { db } from "./database/prisma.js";
 import { createStopWorker } from "./modules/orders/stop-worker.js";
 import { createLimitWorker } from "./modules/orders/limit-worker.js";
 import { createStopOutWorker } from "./modules/orders/stop-out-worker.js";
-import { getReferenceQuoteFeed } from "./modules/market/service.js";
+import {
+  ensureMarketHistoryWarmup,
+  getReferenceQuoteFeed,
+} from "./modules/market/service.js";
+import {
+  isMarketClosedError,
+  markMarketClosedConfirmed,
+  shouldPauseMarketPolling,
+} from "./modules/market/market-hours.js";
 
 function readPositiveInteger(name: string, fallback: number): number {
   const raw = process.env[name];
@@ -40,7 +48,7 @@ const referenceQuoteFeed =
 const stopWorker = isEnabled("STOP_WORKER_ENABLED")
   ? createStopWorker(undefined, {
       intervalMs: readPositiveInteger("STOP_WORKER_INTERVAL_MS", 1000),
-      maxQuoteAgeMs: readPositiveInteger("STOP_WORKER_MAX_QUOTE_AGE_MS", 5000),
+      maxQuoteAgeMs: readPositiveInteger("STOP_WORKER_MAX_QUOTE_AGE_MS", 30_000),
     })
   : null;
 
@@ -51,7 +59,7 @@ const stopWorker = isEnabled("STOP_WORKER_ENABLED")
 const limitWorker = isEnabled("LIMIT_WORKER_ENABLED")
   ? createLimitWorker(undefined, {
       intervalMs: readPositiveInteger("LIMIT_WORKER_INTERVAL_MS", 1000),
-      maxQuoteAgeMs: readPositiveInteger("LIMIT_WORKER_MAX_QUOTE_AGE_MS", 5000),
+      maxQuoteAgeMs: readPositiveInteger("LIMIT_WORKER_MAX_QUOTE_AGE_MS", 30_000),
     })
   : null;
 
@@ -62,7 +70,7 @@ const limitWorker = isEnabled("LIMIT_WORKER_ENABLED")
 const stopOutWorker = isEnabled("STOP_OUT_WORKER_ENABLED")
   ? createStopOutWorker(undefined, {
       intervalMs: readPositiveInteger("STOP_OUT_WORKER_INTERVAL_MS", 1000),
-      maxQuoteAgeMs: readPositiveInteger("STOP_OUT_WORKER_MAX_QUOTE_AGE_MS", 5000),
+      maxQuoteAgeMs: readPositiveInteger("STOP_OUT_WORKER_MAX_QUOTE_AGE_MS", 30_000),
     })
   : null;
 
@@ -74,17 +82,29 @@ let shuttingDown = false;
 
 async function startBackgroundServices(): Promise<void> {
   try {
+    await ensureMarketHistoryWarmup("XAUUSD", ["1m", "5m", "15m", "1h", "4h", "1d"]);
+    console.log("Market history warm-up completed");
+  } catch (error) {
+    console.warn("Market history warm-up skipped:", error);
+  }
+
+  try {
     await referenceQuoteFeed.refresh();
 
     console.log("Reference quote feed warmed up");
   } catch (error) {
-    console.error(
-      "Reference quote feed warm-up failed:",
-      error,
-    );
+    if (isMarketClosedError(error)) {
+      markMarketClosedConfirmed();
+      console.log("Market is closed; background polling paused");
+    } else {
+      console.error(
+        "Reference quote feed warm-up failed:",
+        error,
+      );
+    }
   }
 
-  if (shuttingDown) {
+  if (shuttingDown || shouldPauseMarketPolling()) {
     return;
   }
 

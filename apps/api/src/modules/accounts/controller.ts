@@ -4,6 +4,7 @@ import {
   createDemoAccount,
   getMyAccount,
   getMyAccountBalance,
+  getMyAccountBalanceHistory,
   getMyAccountTradingConditions,
 } from "./service.js";
 
@@ -34,6 +35,18 @@ export async function getAccountBalance(
   res.status(200).json({
     success: true,
     data: balance,
+  });
+}
+
+export async function getAccountBalanceHistory(
+  _req: Request,
+  res: Response,
+): Promise<void> {
+  const history = await getMyAccountBalanceHistory(res.locals.auth.sub);
+
+  res.status(200).json({
+    success: true,
+    data: history,
   });
 }
 

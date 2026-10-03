@@ -44,6 +44,18 @@ export interface AccountBalanceResponse {
   marginLevel: string | null;
 }
 
+export interface AccountBalanceHistoryPoint {
+  time: number;
+  balance: string;
+  equity: string;
+}
+
+export interface AccountBalanceHistoryResponse {
+  accountId: string;
+  currency: string;
+  points: AccountBalanceHistoryPoint[];
+}
+
 export interface AccountTradingConditions {
   currency: string;
 

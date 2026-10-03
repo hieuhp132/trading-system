@@ -8,6 +8,14 @@
       "model": "DemoAccount",
       "namespace": "public"
     },
+    "historicalMarketCandleFull": {
+      "model": "HistoricalMarketCandleFull",
+      "namespace": "public"
+    },
+    "marketCandle": {
+      "model": "MarketCandle",
+      "namespace": "public"
+    },
     "marketPrice": {
       "model": "MarketPrice",
       "namespace": "public"
@@ -422,6 +430,228 @@
               },
               "namespaceId": "public",
               "table": "demoAccount"
+            }
+          },
+          "HistoricalMarketCandleFull": {
+            "fields": {
+              "close": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "high": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "interval": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "low": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "open": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "receivedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "source": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "symbol": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "time": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "close": {
+                  "column": "close"
+                },
+                "high": {
+                  "column": "high"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "interval": {
+                  "column": "interval"
+                },
+                "low": {
+                  "column": "low"
+                },
+                "open": {
+                  "column": "open"
+                },
+                "receivedAt": {
+                  "column": "receivedAt"
+                },
+                "source": {
+                  "column": "source"
+                },
+                "symbol": {
+                  "column": "symbol"
+                },
+                "time": {
+                  "column": "time"
+                }
+              },
+              "namespaceId": "public",
+              "table": "historicalMarketCandleFull"
+            }
+          },
+          "MarketCandle": {
+            "fields": {
+              "close": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "high": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "interval": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "low": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "open": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "receivedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "source": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "symbol": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "time": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "close": {
+                  "column": "close"
+                },
+                "high": {
+                  "column": "high"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "interval": {
+                  "column": "interval"
+                },
+                "low": {
+                  "column": "low"
+                },
+                "open": {
+                  "column": "open"
+                },
+                "receivedAt": {
+                  "column": "receivedAt"
+                },
+                "source": {
+                  "column": "source"
+                },
+                "symbol": {
+                  "column": "symbol"
+                },
+                "time": {
+                  "column": "time"
+                }
+              },
+              "namespaceId": "public",
+              "table": "marketCandle"
             }
           },
           "MarketPrice": {
@@ -1402,6 +1632,176 @@
                 }
               ]
             },
+            "historicalMarketCandleFull": {
+              "columns": {
+                "close": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "high": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "interval": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "low": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "open": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "receivedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "source": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "symbol": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "time": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "symbol",
+                    "interval",
+                    "time"
+                  ],
+                  "name": "historicalMarketCandleFull_symbol_interval_time_idx_a5363bcd",
+                  "prefix": "historicalMarketCandleFull_symbol_interval_time_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "symbol",
+                    "interval",
+                    "time"
+                  ]
+                }
+              ]
+            },
+            "marketCandle": {
+              "columns": {
+                "close": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "high": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "interval": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "low": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "open": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "receivedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "source": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "symbol": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "time": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "symbol",
+                    "interval",
+                    "time"
+                  ],
+                  "name": "marketCandle_symbol_interval_time_idx_a5363bcd",
+                  "prefix": "marketCandle_symbol_interval_time_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "symbol",
+                    "interval",
+                    "time"
+                  ]
+                }
+              ]
+            },
             "marketPrice": {
               "columns": {
                 "ask": {
@@ -2123,10 +2523,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "65fb868c362393109c6abb2cccad2bba5719278f22df317965e7b20673ab3e5e"
+    "storageHash": "90a7a18ff9a769ba5b0a593a6c7e4aef3823809bd1e9cef5c9293718adc3b372"
   },
   "execution": {
-    "executionHash": "3d0095330e40ac07d2ac50355f4b5b8f4d51d8372e0a1ee92345287b32227a1d",
+    "executionHash": "6186aaf52ff3f973ef90a18e762db50c3859c69bcd8f66ad943eeceba440fade",
     "mutations": {
       "defaults": [
         {
@@ -2153,6 +2553,28 @@
             "column": "updatedAt",
             "namespace": "public",
             "table": "demoAccount"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "historicalMarketCandleFull"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "marketCandle"
           }
         },
         {

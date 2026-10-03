@@ -10,6 +10,15 @@ function formatMoney(value: string | number) {
   }).format(Number(value));
 }
 
+function formatRealizedPnl(value: string | null) {
+  if (value === null) {
+    return "--";
+  }
+
+  const amount = Number(value);
+  return `${amount > 0 ? "+" : ""}${formatMoney(amount)}`;
+}
+
 function formatDate(value: string | null) {
   if (!value) {
     return "--";
@@ -87,6 +96,7 @@ export function OrdersPanel() {
                   <th>Quantity</th>
                   <th>Requested</th>
                   <th>Executed</th>
+                  <th>Realized P&amp;L</th>
                   <th>Status</th>
                 </tr>
               </thead>
@@ -133,6 +143,18 @@ export function OrdersPanel() {
                         {order.executedPrice !== null
                           ? formatMoney(order.executedPrice)
                           : "--"}
+                      </td>
+
+                      <td
+                        className={
+                          order.realizedPnl === null
+                            ? undefined
+                            : Number(order.realizedPnl) >= 0
+                              ? "position-pnl position-pnl--profit"
+                              : "position-pnl position-pnl--loss"
+                        }
+                      >
+                        {formatRealizedPnl(order.realizedPnl)}
                       </td>
 
                       <td>
@@ -231,6 +253,21 @@ export function OrdersPanel() {
                         {order.executedPrice !== null
                           ? formatMoney(order.executedPrice)
                           : "--"}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>Realized P&amp;L</span>
+                      <strong
+                        className={
+                          order.realizedPnl === null
+                            ? undefined
+                            : Number(order.realizedPnl) >= 0
+                              ? "position-pnl--profit"
+                              : "position-pnl--loss"
+                        }
+                      >
+                        {formatRealizedPnl(order.realizedPnl)}
                       </strong>
                     </div>
                   </div>

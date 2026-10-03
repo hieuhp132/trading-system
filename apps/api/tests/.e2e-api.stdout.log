@@ -1,0 +1,17 @@
+Trading System API running on http://localhost:4001
+Market history warm-up completed
+Reference quote feed warmed up
+Reference quote feed started
+SL/TP stop worker disabled
+Limit worker disabled
+Stop-Out worker started
+[market-cron] background candle warmup completed at 2026-09-29T19:26:46.391Z
+[market-cron] background candle warmup completed at 2026-09-29T19:27:45.382Z
+[market-cron] background candle warmup completed at 2026-09-29T19:28:45.133Z
+[market-cron] background candle warmup completed at 2026-09-29T19:29:43.461Z
+[market-cron] background candle warmup completed at 2026-09-29T19:30:42.978Z
+[market-cron] background candle warmup completed at 2026-09-29T19:31:41.540Z
+896Z
+[market-cron] background candle warmup completed at 2026-09-29T19:28:59.897Z
+[market-cron] background candle warmup completed at 2026-09-29T19:29:58.902Z
+[market-cron] background candle warmup completed at 2026-09-29T19:30:57.914Z

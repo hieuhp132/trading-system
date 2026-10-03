@@ -4,3 +4,5 @@ build/
 .env
 .env.*
 !.env.example
+/market-data.dump
+/apps/api/tmp/dukascopy-test/

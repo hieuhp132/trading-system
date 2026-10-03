@@ -1,8 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Activity, ArrowRight, ShieldCheck } from "lucide-react";
 
 import { login } from "../features/auth/api";
+import { createDemoAccount } from "../features/account/api";
 import { useAuthStore } from "../stores/auth";
+import { BrandMark } from "../components/BrandMark";
 
 export function Login() {
   const navigate = useNavigate();
@@ -29,7 +32,21 @@ export function Login() {
 
       setAuth(result.user, result.accessToken);
 
-      navigate("/", {
+      try {
+        await createDemoAccount();
+      } catch (accountError: unknown) {
+        const axiosError = accountError as {
+          response?: {
+            status?: number;
+          };
+        };
+
+        if (axiosError.response?.status !== 409) {
+          console.warn("Demo account bootstrap skipped:", accountError);
+        }
+      }
+
+      navigate("/app", {
         replace: true,
       });
     } catch (error: unknown) {
@@ -54,21 +71,26 @@ export function Login() {
 
   return (
     <main className="login-page">
-      <section className="login-card">
-        <div className="login-header">
-          <div className="login-logo">G</div>
-
-          <div>
-            <h1>Gold Trading</h1>
-            <p>Paper Trading Platform</p>
+      <div className="login-layout">
+        <section className="login-intro">
+          <div className="login-brand-lockup">
+            <BrandMark size="large" />
+            <div><strong>Gold Trading</strong><span>Paper trading workspace</span></div>
           </div>
-        </div>
+          <div className="login-intro__copy">
+            <p className="login-kicker"><span /> REALTIME MARKET WORKSPACE</p>
+            <h1>Quan sát rõ hơn.<br /><em>Giao dịch kỷ luật hơn.</em></h1>
+            <p>Theo dõi XAU/USD với dữ liệu realtime, chart trực quan và lớp bảo vệ tài khoản được xử lý ở backend.</p>
+          </div>
+          <div className="login-market-card"><div><span><Activity size={14} /> XAUUSD</span><small>Market status</small></div><strong>LIVE</strong><div className="login-market-card__line" /></div>
+          <div className="login-intro__trust"><ShieldCheck size={15} /> Demo account · Không rủi ro vốn thật</div>
+        </section>
 
-        <div className="login-title">
+        <section className="login-card">
+          <div className="login-title">
           <h2>Đăng nhập</h2>
-
-          <p>Đăng nhập vào tài khoản paper trading của bạn.</p>
-        </div>
+            <p>Tiếp tục vào workspace của bạn.</p>
+          </div>
 
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="form-group">
@@ -111,15 +133,15 @@ export function Login() {
 
           <button type="submit" className="login-submit" disabled={loading}>
             {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+            {!loading && <ArrowRight size={16} />}
           </button>
         </form>
 
         <div className="login-footer">
-          <span>XAUUSD</span>
-          <span>•</span>
-          <span>Demo Environment</span>
+          <span>XAUUSD</span><span>•</span><span>Demo Environment</span>
         </div>
       </section>
+      </div>
     </main>
   );
 }

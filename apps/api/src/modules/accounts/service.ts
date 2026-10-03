@@ -5,9 +5,11 @@ import { db } from "../../database/prisma.js";
 import { getMarketPrice } from "../market/service.js";
 import { calculateUnrealizedPnl, roundMoney } from "../../common/utils/pnl.js";
 import { XAUUSD_SPEC } from "../../common/constants/xauusd.js";
+import { isMarketClosedByWeekend } from "../market/market-hours.js";
 
 import type {
   AccountBalanceResponse,
+  AccountBalanceHistoryResponse,
   AccountResponse,
   AccountTradingConditions,
   CommissionType,
@@ -185,46 +187,57 @@ export async function getMyAccountBalance(
     );
   }
 
-  const marketPrice = await getMarketPrice(XAUUSD_SPEC.symbol);
-
   const positions = await db.orm.public.Position.where({
     accountId: account.id,
     status: "OPEN",
   }).all();
 
-  const unrealizedPnl = positions.reduce((total, position) => {
-    const volume = Number(position.quantity);
-    const averageEntryPrice = Number(position.averageEntryPrice);
+  const marketClosed = isMarketClosedByWeekend();
 
-    const currentPrice =
-      position.side === "LONG"
-        ? Number(marketPrice.bid)
-        : Number(marketPrice.ask);
+  let unrealizedPnl = 0;
 
-    if (
-      !Number.isFinite(volume) ||
-      volume <= 0 ||
-      !Number.isFinite(averageEntryPrice) ||
-      averageEntryPrice <= 0 ||
-      !Number.isFinite(currentPrice) ||
-      currentPrice <= 0
-    ) {
-      throw new AppError(
-        "Dữ liệu position hoặc market price không hợp lệ",
-        502,
-        "INVALID_ACCOUNT_MARKET_DATA",
+  if (marketClosed) {
+    unrealizedPnl = positions.reduce((total, position) => {
+      const storedPnl = Number(position.unrealizedPnl ?? 0);
+      return total + (Number.isFinite(storedPnl) ? storedPnl : 0);
+    }, 0);
+  } else {
+    const marketPrice = await getMarketPrice(XAUUSD_SPEC.symbol);
+
+    unrealizedPnl = positions.reduce((total, position) => {
+      const volume = Number(position.quantity);
+      const averageEntryPrice = Number(position.averageEntryPrice);
+
+      const currentPrice =
+        position.side === "LONG"
+          ? Number(marketPrice.bid)
+          : Number(marketPrice.ask);
+
+      if (
+        !Number.isFinite(volume) ||
+        volume <= 0 ||
+        !Number.isFinite(averageEntryPrice) ||
+        averageEntryPrice <= 0 ||
+        !Number.isFinite(currentPrice) ||
+        currentPrice <= 0
+      ) {
+        throw new AppError(
+          "Dữ liệu position hoặc market price không hợp lệ",
+          502,
+          "INVALID_ACCOUNT_MARKET_DATA",
+        );
+      }
+      return (
+        total +
+        calculateUnrealizedPnl(
+          position.side,
+          volume,
+          averageEntryPrice,
+          currentPrice,
+        )
       );
-    }
-    return (
-      total +
-      calculateUnrealizedPnl(
-        position.side,
-        volume,
-        averageEntryPrice,
-        currentPrice,
-      )
-    );
-  }, 0);
+    }, 0);
+  }
 
   const balance = Number(account.balance);
 
@@ -293,6 +306,67 @@ export async function getMyAccountBalance(
     freeMargin: roundMoney(freeMargin),
 
     marginLevel: marginLevel === null ? null : roundMoney(marginLevel),
+  };
+}
+
+export async function getMyAccountBalanceHistory(
+  userId: string,
+): Promise<AccountBalanceHistoryResponse> {
+  const account = await db.orm.public.DemoAccount.first({ userId });
+
+  if (!account) {
+    throw new AppError(
+      "Tài khoản demo không tồn tại",
+      404,
+      "DEMO_ACCOUNT_NOT_FOUND",
+    );
+  }
+
+  const currentBalance = await getMyAccountBalance(userId);
+  const equityOffset = Number(currentBalance.equity) - Number(currentBalance.balance);
+
+  const plan = db.raw.sql`
+    SELECT
+      date_trunc('day', "closedAt") AS "day",
+      SUM("realizedPnl") AS "realizedPnl"
+    FROM "public"."trade"
+    WHERE "accountId" = ${account.id}
+      AND "closedAt" IS NOT NULL
+      AND "realizedPnl" IS NOT NULL
+    GROUP BY date_trunc('day', "closedAt")
+    ORDER BY "day" ASC
+  `
+    .returnsRow({
+      day: { codecId: "pg/timestamptz-string@1" },
+      realizedPnl: { codecId: "pg/numeric@1" },
+    })
+    .build();
+
+  const rows = await db.transaction((tx) => tx.query(plan));
+  const points: AccountBalanceHistoryResponse["points"] = [{
+    time: Math.floor(Date.parse(account.createdAt) / 1000),
+    balance: String(account.initialBalance),
+    equity: roundMoney(Number(account.initialBalance) + equityOffset),
+  }];
+  let balance = Number(account.initialBalance);
+
+  for (const row of rows) {
+    balance += Number(row.realizedPnl);
+    points.push({
+      time: Math.floor(Date.parse(row.day) / 1000),
+      balance: roundMoney(balance),
+      equity: roundMoney(balance + equityOffset),
+    });
+  }
+
+  const sortedPoints = [...points].sort(
+    (a, b) => Number(a.time) - Number(b.time),
+  );
+
+  return {
+    accountId: account.id,
+    currency: account.currency,
+    points: sortedPoints,
   };
 }
 
